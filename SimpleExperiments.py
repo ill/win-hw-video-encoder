@@ -1,6 +1,8 @@
 import argparse
 import subprocess
 import SpeedExperiment
+import CRFExperiment
+import QualityExperiment
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Video transcode automation script.")
@@ -15,8 +17,10 @@ def main():
         result = subprocess.run(aws_sso_cmd)
         if result.returncode != 0:
             print('AWS SSO login failed. Will use existing AWS tokens in the environment.')
-    
-    SpeedExperiment.SpeedExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+        
+    #SpeedExperiment.SpeedExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    #CRFExperiment.CRFExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    QualityExperiment.QualityExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
 
     print('Done.')
 
