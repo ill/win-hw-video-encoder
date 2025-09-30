@@ -218,9 +218,6 @@ class SpeedExperiment(Experiment):
             super().__init__(experiment, str(speed))
             self.speed = speed
 
-        def get_experiment_name(self):
-            return f'{super().get_experiment_name()} Speed: {self.speed}'
-
         def get_extra_ffmpeg_parameters(self):
             return [
                 '-speed', str(self.speed)
