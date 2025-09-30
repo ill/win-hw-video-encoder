@@ -45,37 +45,46 @@ def parse_args():
     parser.add_argument('--sso', type=bool, default=False, help='Use AWS SSO to login before uploading to S3')
     return parser.parse_args()
 
-def transcode(input_filename, quality, output_filename):
+def transcode(input_filename, quality, output_filename, extra_commands):
 
-    ffmpeg_cmd = [
-        'ffmpeg',
-        '-hide_banner',
+    ffmpeg_cmd = (
+        [
+            'ffmpeg',
+            '-hide_banner',
 
-        '-i', input_filename,
+            '-i', input_filename,
 
-        '-vf', 'scale=1920:-1',
-        '-fps_mode', 'passthrough',
+            '-vf', 'scale=1920:-1',
+            '-fps_mode', 'passthrough',
 
-        # drop metadata things
-        '-dn',
-        '-sn',
-        '-map_metadata', '-1',
-        '-map_chapters', '-1',
+            # drop metadata things
+            '-dn',
+            '-sn',
+            '-map_metadata', '-1',
+            '-map_chapters', '-1',
 
-        '-c:v', 'libvpx-vp9',
-        '-quality', str(quality),
+            '-c:v', 'libvpx-vp9',
+        ]
+        + extra_commands +
+        [
+            '-quality', str(quality),
 
-        '-f', 'webm',
-        output_filename,
-        '-y',
-    ]
+            '-f', 'webm',
+            output_filename,
+            '-y',
+        ]
+    )
+
     print (ffmpeg_cmd)
+
     start = time.perf_counter()
     result = subprocess.run(ffmpeg_cmd)
     end = time.perf_counter()
+
     if result.returncode != 0:
         print('ffmpeg failed.')
         sys.exit(1)
+
     return end - start
 
 def main():
