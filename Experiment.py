@@ -1,17 +1,11 @@
-import argparse
 import subprocess
 import sys
 
-import platform
-import os
 import csv
 import json
 import statistics
 import math
 import time
-
-import boto3
-from botocore.exceptions import ClientError
 
 class Experiment:
     def __init__(self, experiment_name, input_video_file_name, output_video_file_basename):
@@ -198,69 +192,3 @@ class Experiment:
 
         def get_extra_csv_columns(self):
             return []
-
-class SpeedExperiment(Experiment):
-    def __init__(self, input_video_file_name, output_video_file_basename):
-        super().__init__('Speed', input_video_file_name, output_video_file_basename)
-
-    def get_extra_csv_header_columns(self):
-        return ['speed']
-    
-    def run_experiment(self):
-        super().run_experiment()
-
-        for speed in range(0, 15):
-            sub_experiment = SpeedExperiment.SubExperiment(self, speed)
-            sub_experiment.run_sub_experiment()
-
-    class SubExperiment(Experiment.SubExperiment):
-        def __init__(self, experiment, speed):
-            super().__init__(experiment, str(speed))
-            self.speed = speed
-
-        def get_extra_ffmpeg_parameters(self):
-            return [
-                '-speed', str(self.speed)
-            ]
-        
-        def get_extra_csv_columns(self):
-            return [
-                str(self.speed)
-            ]
-
-def upload_to_s3(file):
-    print(f"Uploading {file} to S3...")
-    object_name = "videos/ffmpeg-video-quallity/sweep-speed/" + file
-
-    # Upload the file
-    s3_client = boto3.client('s3')
-    try:
-        response = s3_client.upload_file(file, 'audiovisual-test-public', object_name, ExtraArgs={'ACL': 'public-read'})
-        print("Upload succeeded with response:", response)
-    except ClientError as e:
-        print("Upload failed with error:", e)
-        return False
-    return True
-
-def parse_args():
-    parser = argparse.ArgumentParser(description="Video transcode automation script.")
-    parser.add_argument('--sso', type=bool, default=False, help='Use AWS SSO to login before uploading to S3')
-    return parser.parse_args()
-
-
-
-def main():
-    args = parse_args()
-
-    if (args.sso):
-        aws_sso_cmd = ['aws', 'sso', 'login', '--profile', 'test-audiovisual']
-        result = subprocess.run(aws_sso_cmd)
-        if result.returncode != 0:
-            print('AWS SSO login failed. Will use existing AWS tokens in the environment.')
-    
-    SpeedExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
-
-    print('Done.')
-
-if __name__ == '__main__':
-    main()
