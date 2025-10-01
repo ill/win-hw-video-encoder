@@ -85,7 +85,7 @@ class Experiment:
 
                 '-c:v', 'libvpx-vp9',
             ]
-            + self.get_extra_transcode_parameters() +
+            + self.get_extra_ffmpeg_parameters() +
             [
                 '-f', 'webm',
                 self.video_filename,
@@ -105,7 +105,7 @@ class Experiment:
                 sys.exit(1)
             self.transcode_seconds = end - start
 
-        def get_extra_transcode_parameters(self):
+        def get_extra_ffmpeg_parameters(self):
             return []
 
         def ffprobe(self):
