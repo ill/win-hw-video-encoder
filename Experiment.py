@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import os
 
 import csv
 import json
@@ -26,7 +27,8 @@ class Experiment:
             'vmaf_hmean', 
             'vmaf_stddev',
             'bpb',
-            'encoding_time_s'
+            'encoding_time_s',
+            'file_bytes'
         ])
 
         with open(self.csv_file_name, 'w', newline='') as f:
@@ -182,7 +184,8 @@ class Experiment:
                 self.vmaf_harmonic_mean,
                 self.vmaf_std_dev,
                 str(self.bpb) if self.bpb is not None else 'N/A',
-                str(self.transcode_seconds)
+                str(self.transcode_seconds),
+                str(os.path.getsize(self.video_filename))
             ])
 
             # Append row to CSV
