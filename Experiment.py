@@ -185,7 +185,7 @@ class Experiment:
                 self.vmaf_std_dev,
                 str(self.bpb) if self.bpb is not None else 'N/A',
                 str(self.transcode_seconds),
-                str(os.path.getsize(self.video_filename))
+                f'{os.path.getsize(self.video_filename):,}'
             ])
 
             # Append row to CSV
