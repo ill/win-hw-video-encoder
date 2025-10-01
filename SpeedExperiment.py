@@ -10,7 +10,7 @@ class SpeedExperiment(Experiment.Experiment):
     def run_experiment(self):
         super().run_experiment()
 
-        for speed in range(0, 15):
+        for speed in range(0, 7):
             sub_experiment = SpeedExperiment.SubExperiment(self, speed)
             sub_experiment.run_sub_experiment()
 
