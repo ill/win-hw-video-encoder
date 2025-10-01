@@ -10,8 +10,8 @@ class CRFExperiment(Experiment.Experiment):
     def run_experiment(self):
         super().run_experiment()
 
-        # for crf in range(0, 63, 5):
-        #     CRFExperiment.SubExperiment(self, crf).run_sub_experiment()
+        for crf in range(0, 63, 5):
+            CRFExperiment.SubExperiment(self, crf).run_sub_experiment()
 
         for crf in range(0, 63, 5):
             CRFExperiment.SubExperiment(self, crf, two_pass_encoding = True).run_sub_experiment()

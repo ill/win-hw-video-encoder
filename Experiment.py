@@ -185,7 +185,7 @@ class Experiment:
                 '-hide_banner',
                 '-i', self.experiment.input_video_file_name,
                 '-i', self.video_filename,
-                '-lavfi', f"[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:-1:flags=bicubic[reference];[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:-1:flags=bicubic[distorted];[distorted][reference]libvmaf=log_fmt=json:log_path={self.vmaf_filename}:n_threads=4",
+                '-lavfi', f"[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags=bicubic[reference];[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags=bicubic[distorted];[distorted][reference]libvmaf=log_fmt=json:log_path={self.vmaf_filename}:n_threads=4",
                 '-f', 'null',
                 '-'
             ]
