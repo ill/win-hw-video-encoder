@@ -17,7 +17,7 @@ class QualityExperiment(Experiment.Experiment):
     class SubExperiment(Experiment.Experiment.SubExperiment):
         def __init__(self, experiment, quality):
             super().__init__(experiment, quality)
-            self.crf = quality
+            self.quality = quality
 
         def get_extra_ffmpeg_parameters(self):
             return [
