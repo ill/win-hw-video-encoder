@@ -18,9 +18,15 @@ def main():
         if result.returncode != 0:
             print('AWS SSO login failed. Will use existing AWS tokens in the environment.')
         
-    SpeedExperiment.SpeedExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
-    CRFExperiment.CRFExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
-    QualityExperiment.QualityExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    #SpeedExperiment.SpeedExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    #CRFExperiment.CRFExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    #QualityExperiment.QualityExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+
+    #CRFExperiment.CRFExperiment('sonichd.mp4', 'sonichd').run_experiment()
+
+    #CRFExperiment.CRFExperiment('zootopia12.mp4', 'zootopia12').run_experiment()
+
+    CRFExperiment.CRFExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
 
     print('Done.')
 

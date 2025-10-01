@@ -10,12 +10,15 @@ class CRFExperiment(Experiment.Experiment):
     def run_experiment(self):
         super().run_experiment()
 
+        # for crf in range(0, 63, 5):
+        #     CRFExperiment.SubExperiment(self, crf).run_sub_experiment()
+
         for crf in range(0, 63, 5):
-            CRFExperiment.SubExperiment(self, crf).run_sub_experiment()
+            CRFExperiment.SubExperiment(self, crf, two_pass_encoding = True).run_sub_experiment()
 
     class SubExperiment(Experiment.Experiment.SubExperiment):
-        def __init__(self, experiment, crf):
-            super().__init__(experiment, str(crf))
+        def __init__(self, experiment, crf, two_pass_encoding = False):
+            super().__init__(experiment, str(crf), two_pass_encoding)
             self.crf = crf
 
         def get_extra_ffmpeg_parameters(self):

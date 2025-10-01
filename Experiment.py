@@ -32,6 +32,8 @@ class Experiment:
             'vmaf_stddev',
             'bpb',
             'encoding_time_s',
+            'encoding_time_pass1_s',
+            'encoding_time_pass2_s',
             'file_bytes'
         ])
 
@@ -46,15 +48,20 @@ class Experiment:
         self.create_csv()
 
     class SubExperiment:
-        def __init__(self, experiment, sub_experiment_name):
+        def __init__(self, experiment, sub_experiment_name, two_pass_encoding = False):
             self.experiment = experiment
             self.sub_experiment_name = sub_experiment_name
+            self.two_pass_encoding = two_pass_encoding
 
             self.video_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.webm"
             self.ffprobe_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.probe.json"
             self.vmaf_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.vmaf.json"
 
+            self.passlog_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}-passlog" if two_pass_encoding else None
+
             self.transcode_seconds = 0.0
+            self.transcode_pass_1_seconds = None
+            self.transcode_pass_2_seconds = None
             self.vmaf_harmonic_mean = 0.0
             self.vmaf_std_dev = 0.0
             self.actual_bitrate = None
@@ -71,7 +78,7 @@ class Experiment:
         def get_sub_experiment_name(self):
             return f'{self.experiment.experiment_name}: {self.sub_experiment_name}'
             
-        def transcode(self):
+        def ffmpeg(self, params):
             print('==================\nRunning ffmpeg...')
 
             ffmpeg_cmd = ([
@@ -91,12 +98,7 @@ class Experiment:
 
                 '-c:v', 'libvpx-vp9',
             ]
-            + self.get_extra_ffmpeg_parameters() +
-            [
-                '-f', 'webm',
-                self.video_filename,
-                '-y',
-            ])
+            + params)
 
             for arg in ffmpeg_cmd:
                 print (arg, end = ' ')
@@ -109,10 +111,51 @@ class Experiment:
             if result.returncode != 0:
                 print('ffmpeg failed.')
                 sys.exit(1)
-            self.transcode_seconds = end - start
+            return end - start
+
+        def transcode(self):
+            output_params = [
+                    '-f', 'webm',
+                    self.video_filename,
+                    '-y',
+                ]
+
+            if self.two_pass_encoding:
+                print('==================\nRunning two pass transcode (Pass 1)...')
+
+                self.transcode_pass_1_seconds = self.ffmpeg(
+                    self.get_extra_ffmpeg_parameters_pass1() 
+                    + [
+                        '-pass', '1', '-passlogfile', self.passlog_filename,
+                        '-f', 'null', 'dev/null',    # For windows, dev/null should be NUL, handle this somehow later?
+                        '-y'
+                    ])
+
+                print('==================\nRunning two pass transcode (Pass 2)...')
+
+                self.transcode_pass_2_seconds = self.ffmpeg(
+                    self.get_extra_ffmpeg_parameters_pass2() 
+                    + [
+                        '-pass', '2', '-passlogfile', self.passlog_filename,
+                    ]
+                    + output_params)
+
+                self.transcode_seconds = self.transcode_pass_1_seconds + self.transcode_pass_2_seconds
+
+            else:
+                print('==================\nRunning one pass transcode...')
+                self.transcode_seconds = self.ffmpeg(
+                    self.get_extra_ffmpeg_parameters() 
+                    + output_params)
 
         def get_extra_ffmpeg_parameters(self):
             return []
+        
+        def get_extra_ffmpeg_parameters_pass1(self):
+            return self.get_extra_ffmpeg_parameters()
+        
+        def get_extra_ffmpeg_parameters_pass2(self):
+            return self.get_extra_ffmpeg_parameters()
 
         def ffprobe(self):
             print('==================\nRunning ffprobe...')
@@ -189,6 +232,8 @@ class Experiment:
                 self.vmaf_std_dev,
                 str(self.bpb) if self.bpb is not None else 'N/A',
                 str(self.transcode_seconds),
+                str(self.transcode_pass_1_seconds) if self.transcode_pass_1_seconds is not None else 'N/A',
+                str(self.transcode_pass_2_seconds) if self.transcode_pass_2_seconds is not None else 'N/A',
                 f'{os.path.getsize(self.video_filename):,}'
             ])
 
