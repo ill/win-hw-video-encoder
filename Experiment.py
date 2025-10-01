@@ -14,7 +14,11 @@ class Experiment:
         self.input_video_file_name = input_video_file_name
         self.output_video_file_basename = output_video_file_basename
 
-        self.csv_file_name = f"{self.output_video_file_basename}-{experiment_name}.csv"
+        self.base_directory = f"Out/{experiment_name}/{self.output_video_file_basename}"
+
+        os.makedirs(self.base_directory, exist_ok=True)
+
+        self.csv_file_name = f"{self.base_directory}/{self.output_video_file_basename}-{experiment_name}.csv"
         self.csv_file = None
         
     def create_csv(self):
@@ -46,9 +50,9 @@ class Experiment:
             self.experiment = experiment
             self.sub_experiment_name = sub_experiment_name
 
-            self.video_filename = f"{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.webm"
-            self.ffprobe_filename = f"{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.probe.json"
-            self.vmaf_filename = f"{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.vmaf.json"
+            self.video_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.webm"
+            self.ffprobe_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.probe.json"
+            self.vmaf_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.vmaf.json"
 
             self.transcode_seconds = 0.0
             self.vmaf_harmonic_mean = 0.0
