@@ -22,8 +22,8 @@ class CQGoogleExperiment(Experiment.Experiment):
         # for crf in range(0, 63, 5):
         #     CQGoogleExperiment.SubExperiment(self, crf, two_pass_encoding = True).run_sub_experiment()
 
-        CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610).run_sub_experiment()
-        CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610, two_pass_encoding=True).run_sub_experiment()
+        #CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610).run_sub_experiment()
+        #CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610, two_pass_encoding=True).run_sub_experiment()
 
     class SubExperiment(Experiment.Experiment.SubExperiment):
         def __init__(self, experiment, crf, target_bitrate, min_bitrate, max_bitrate, two_pass_encoding = False):

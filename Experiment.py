@@ -1,12 +1,11 @@
-import subprocess
-import sys
 import os
 
 import csv
 import json
 import statistics
 import math
-import time
+
+import Util
 
 class Experiment:
     def __init__(self, experiment_name, input_video_file_name, output_video_file_basename):
@@ -19,7 +18,40 @@ class Experiment:
         os.makedirs(self.base_directory, exist_ok=True)
 
         self.csv_file_name = f"{self.base_directory}/{self.output_video_file_basename}-{experiment_name}.csv"
+        self.input_ffprobe_filename = f"{self.base_directory}/{self.output_video_file_basename}-{self.experiment_name}.input_probe.json"
         self.csv_file = None
+
+        self.input_width = None
+        self.input_height = None
+        self.input_duration_s = None
+        self.input_bitrate = None
+
+    def ffprobe(self):
+        print('==================\nRunning ffprobe on Input...')
+
+        Util.ffprobe(self.input_video_file_name, self.input_ffprobe_filename, show_streams=True,
+        params = [
+            '-show_entries', 'format=duration'
+        ])
+
+    def process_input(self):
+        with open(self.input_ffprobe_filename, 'r') as f:
+            probe_data = json.load(f)
+
+        format = probe_data.get('format')
+
+        if format is not None:
+            self.input_duration_s = format.get('duration')
+
+        # Find video stream and get actual bitrate
+        for stream in probe_data.get('streams', []):
+            if stream.get('codec_type') == 'video':
+                self.input_width = stream.get('width')
+                self.input_height = stream.get('height')
+                self.input_bitrate = stream.get('bit_rate')
+                break
+
+        print (f"==================\nInput: {self.input_video_file_name}\n\twidth:{self.input_width}\n\theight:{self.input_height}\n\tduration_s:{self.input_duration_s}\n\tbitrate:{self.input_bitrate}")
         
     def create_csv(self):
         # Create and write header to csv
@@ -45,16 +77,20 @@ class Experiment:
         return []
 
     def run_experiment(self):
+        self.ffprobe()
+        self.process_input()
         self.create_csv()
 
     class SubExperiment:
-        def __init__(self, experiment, sub_experiment_name, two_pass_encoding = False):
+        def __init__(self, experiment, sub_experiment_name: str, output_width: int = 1920, output_height: int = 1080, two_pass_encoding: bool = False):
             self.experiment = experiment
             self.sub_experiment_name = sub_experiment_name
+            self.output_width = output_width
+            self.output_height = output_height
             self.two_pass_encoding = two_pass_encoding
 
             self.video_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.webm"
-            self.ffprobe_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.probe.json"
+            self.output_ffprobe_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.probe.json"
             self.vmaf_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.vmaf.json"
 
             self.passlog_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}-passlog" if two_pass_encoding else None
@@ -77,16 +113,10 @@ class Experiment:
 
         def get_sub_experiment_name(self):
             return f'{self.experiment.experiment_name}: {self.sub_experiment_name}'
-            
+        
         def ffmpeg(self, params):
-            print('==================\nRunning ffmpeg...')
-
-            ffmpeg_cmd = ([
-                'ffmpeg',
-                '-hide_banner',
-
-                '-i', self.experiment.input_video_file_name,
-
+            return Util.ffmpeg(self.experiment.input_video_file_name,
+            [
                 '-vf', 'scale=1920:-1',
                 '-fps_mode', 'passthrough',
 
@@ -97,21 +127,7 @@ class Experiment:
                 '-map_chapters', '-1',
 
                 '-c:v', 'libvpx-vp9',
-            ]
-            + params)
-
-            for arg in ffmpeg_cmd:
-                print (arg, end = ' ')
-            print('\n')        
-
-            start = time.perf_counter()
-            result = subprocess.run(ffmpeg_cmd)
-            end = time.perf_counter()
-
-            if result.returncode != 0:
-                print('ffmpeg failed.')
-                sys.exit(1)
-            return end - start
+            ] + params)
 
         def transcode(self):
             output_params = [
@@ -158,46 +174,20 @@ class Experiment:
             return self.get_extra_ffmpeg_parameters()
 
         def ffprobe(self):
-            print('==================\nRunning ffprobe...')
+            print('==================\nRunning ffprobe on Output...')
 
-            ffprobe_cmd = ['ffprobe', 
-                        '-print_format', 
-                        'json', 
-                        #'-show_frames', 
-                        '-show_streams', 
-                        self.video_filename]
-            
-            for arg in ffprobe_cmd:
-                print (arg, end = ' ')
-            print('\n')
-            
-            with open(self.ffprobe_filename, 'w') as f:
-                result = subprocess.run(ffprobe_cmd, stdout=f)
-                if result.returncode != 0:
-                    print('ffprobe failed.')
-                    sys.exit(1)
+            Util.ffprobe(self.video_filename, self.ffprobe_filename, show_streams=True)
 
         def vmaf(self):
             print('==================\nRunning vmaf...')
 
-            vmaf_command = [
-                'ffmpeg',
-                '-hide_banner',
-                '-i', self.experiment.input_video_file_name,
+            Util.ffmpeg(self.experiment.input_video_file_name,
+            [
                 '-i', self.video_filename,
                 '-lavfi', f"[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags=bicubic[reference];[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags=bicubic[distorted];[distorted][reference]libvmaf=log_fmt=json:log_path={self.vmaf_filename}:n_threads=4",
                 '-f', 'null',
                 '-'
-            ]
-
-            for arg in vmaf_command:
-                print (arg, end = ' ')
-            print('\n')
-
-            result = subprocess.run(vmaf_command)
-            if result.returncode != 0:
-                print('ffmpeg vmaf failed.')
-                sys.exit(1)
+            ])
 
         def process_results(self):
             # Read VMAF and probe data

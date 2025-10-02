@@ -1,0 +1,74 @@
+import sys
+import time
+import subprocess
+
+def ceil_to_divisible_by(original: int, divisible_by: int) -> int:
+    return ((original - 1) / divisible_by + 1) * divisible_by
+
+def maybe_scale_down_to_fit(current_long_side: int, current_short_side: int, max_long_side: int, max_short_side: int, transposed: bool) -> tuple[int, int]:
+    long_side: int = 0
+    short_side: int = 0
+
+    if (current_long_side <= max_long_side and current_short_side <= max_short_side):
+        # Fit; still try to make it divisible by 8.
+        long_side = ceil_to_divisible_by(current_long_side, 8)
+        short_side = ceil_to_divisible_by(current_short_side, 8)
+    elif (current_long_side / current_short_side > max_long_side / max_short_side):
+        # If long side is too long; should scale down with long side to fit.
+        long_side = ceil_to_divisible_by(max_long_side, 8)
+        short_side = ceil_to_divisible_by(max_long_side * current_short_side / current_long_side, 8)
+    else:
+        # If short side is too long; should scale down with short side to fit.
+        long_side = ceil_to_divisible_by(max_short_side * current_long_side / current_short_side, 8)
+        short_side = ceil_to_divisible_by(max_short_side, 8)
+
+    return (short_side if transposed else long_side, 
+            long_side if transposed else short_side)
+
+def print_command(command = []):
+    for arg in command:
+        print (arg, end = ' ')
+    print('\n')
+
+# Runs ffmpeg and returns the time it took to run
+def ffmpeg(input, params = []) -> float:
+    print('==================\nRunning ffmpeg...')
+
+    ffmpeg_cmd = ([
+        'ffmpeg',
+        '-hide_banner'
+        '-i', input,
+    ]
+    + params)
+
+    print_command(ffmpeg_cmd)
+
+    start = time.perf_counter()
+    result = subprocess.run(ffmpeg_cmd)
+    end = time.perf_counter()
+
+    if result.returncode != 0:
+        print('ffmpeg failed.')
+        sys.exit(1)
+    return end - start
+
+def ffprobe(input, output, show_frames = False, show_streams = False, params = []):
+    print('==================\nRunning ffprobe...')
+
+    ffprobe_cmd = (['ffprobe',
+        '-hide_banner',
+        '-print_format', 
+        'json',
+    ]
+    + params
+    + (['-show_frames'] if show_frames else [])
+    + (['-show_streams'] if show_streams else [])
+    + [input])
+
+    print_command(ffprobe_cmd)
+    
+    with open(output, 'w') as f:
+        result = subprocess.run(ffprobe_cmd, stdout=f)
+        if result.returncode != 0:
+            print('ffprobe failed.')
+            sys.exit(1)
