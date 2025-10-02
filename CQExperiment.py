@@ -8,12 +8,13 @@ class CQExperiment(Experiment.Experiment):
                 'max_bitrate']
 
     class SubExperiment(Experiment.Experiment.SubExperiment):
-        def __init__(self, experiment, crf, target_bitrate, min_bitrate, max_bitrate, output_width: int = 1920, output_height: int = 1080, two_pass_encoding = False):
-            super().__init__(experiment, f'crf-{crf}-bp-{target_bitrate}-mnbp-{min_bitrate}-mxbp-{max_bitrate}-w-{output_width}-h-{output_height}-{"2Pass" if two_pass_encoding else "1Pass"}', output_width, output_height, two_pass_encoding)
+        def __init__(self, experiment, crf, target_bitrate, min_bitrate, max_bitrate, output_width: int = 1920, output_height: int = 1080, threads = 1, two_pass_encoding = False):
+            super().__init__(experiment, f'crf-{crf}-bp-{target_bitrate}-mnbp-{min_bitrate}-mxbp-{max_bitrate}-w-{output_width}-h-{output_height}-t-{threads}-{"2Pass" if two_pass_encoding else "1Pass"}', output_width, output_height, two_pass_encoding)
             self.crf = crf
             self.target_bitrate = target_bitrate
             self.min_bitrate = min_bitrate
             self.max_bitrate = max_bitrate
+            self.threads = threads
 
         # Some of this is currently hardcoded for 1080p, I'll make that more configurable later
 
@@ -24,7 +25,7 @@ class CQExperiment(Experiment.Experiment):
                 '-minrate', str(self.min_bitrate),
                 '-maxrate', str(self.max_bitrate),
                 '-quality', 'good',
-                '-threads', '4',
+                '-threads', self.threads,
                 '-tile-columns', '2'
             ]
         
