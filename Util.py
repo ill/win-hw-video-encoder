@@ -2,6 +2,39 @@ import sys
 import time
 import subprocess
 
+RES_1080p = (1920, 1080)
+RES_720p = (1280, 720)
+RES_480p = (640, 480)
+RES_360p = (640, 360)
+RES_240p = (320, 240)
+RES_180p = (320, 180)
+RES_90p = (160, 90)
+
+RES_COMMON = [
+    RES_1080p,
+    RES_720p,
+    RES_480p,
+    RES_360p,
+    RES_240p,
+]
+
+RES_RBX = [
+    RES_720p,
+    RES_360p,
+    RES_180p,
+    RES_90p,
+]
+
+RES_ALL = [
+    RES_1080p,
+    RES_720p,
+    RES_480p,
+    RES_360p,
+    RES_240p,
+    RES_180p,
+    RES_90p
+]
+
 def ceil_to_divisible_by(original: int, divisible_by: int) -> int:
     return (int((original - 1) / divisible_by) + 1) * divisible_by
 

@@ -126,13 +126,33 @@ class Experiment:
         self.write_input_csv()
         self.create_csv()
 
+    def get_scaled_down_to_fit_resolutions(self, resolutions: list[tuple[int, int]]) -> list[tuple[int, int]]:
+        results: list[tuple[int, int]] = []
+        seen: set[tuple[int, int]] = set()
+
+        for res in resolutions:
+            new_res = self.scale_down_to_fit(res[0], res[1])
+            if new_res not in seen:
+                seen.add(new_res)
+                results.append(new_res)
+
+        return results    
+
     def scale_down_to_fit(self, destination_long_side: int, destination_short_side: int) -> tuple[int, int]:
         transposed = self.input_width < self.input_height
         long_side = max(self.input_width, self.input_height)
         short_side = min(self.input_width, self.input_height)
 
         return Util.maybe_scale_down_to_fit(long_side, short_side, destination_long_side, destination_short_side, transposed)
-
+    
+    def get_scaled_down_common_resolutions(self) -> list[tuple[int, int]]:
+        return self.get_scaled_down_to_fit_resolutions(Util.RES_COMMON)
+    
+    def get_scaled_down_rbx_resolutions(self) -> list[tuple[int, int]]:
+        return self.get_scaled_down_to_fit_resolutions(Util.RES_RBX)
+    
+    def get_scaled_down_all_resolutions(self) -> list[tuple[int, int]]:
+        return self.get_scaled_down_to_fit_resolutions(Util.RES_ALL)
     class SubExperiment:
         def __init__(self, experiment, sub_experiment_name: str, output_width: int = 1920, output_height: int = 1080, two_pass_encoding: bool = False):
             self.experiment = experiment
