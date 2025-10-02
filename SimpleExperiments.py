@@ -3,6 +3,7 @@ import subprocess
 import SpeedExperiment
 import CRFExperiment
 import QualityExperiment
+import CQGoogleExperiment
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Video transcode automation script.")
@@ -26,7 +27,10 @@ def main():
 
     #CRFExperiment.CRFExperiment('zootopia12.mp4', 'zootopia12').run_experiment()
 
-    CRFExperiment.CRFExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
+    #CRFExperiment.CRFExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
+
+    CQGoogleExperiment.CQGoogleExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    CQGoogleExperiment.CQGoogleExperiment('sonichd.mp4', 'sonichd').run_experiment()
 
     print('Done.')
 
