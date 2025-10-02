@@ -27,7 +27,7 @@ class CQGoogleExperiment(Experiment.Experiment):
 
     class SubExperiment(Experiment.Experiment.SubExperiment):
         def __init__(self, experiment, crf, target_bitrate, min_bitrate, max_bitrate, two_pass_encoding = False):
-            super().__init__(experiment, f'crf:{crf}', two_pass_encoding)
+            super().__init__(experiment, f'crf-{crf}-bp-{target_bitrate}-mnbp-{min_bitrate}-mxbp-{max_bitrate}-{"2Pass" if two_pass_encoding else "1Pass"}', two_pass_encoding)
             self.crf = crf
             self.target_bitrate = target_bitrate
             self.min_bitrate = min_bitrate
@@ -52,7 +52,7 @@ class CQGoogleExperiment(Experiment.Experiment):
                     '-speed', '4'
                 ])
         
-        def get_extra_ffmpeg_parameters_pass1(self):
+        def get_extra_ffmpeg_parameters_pass2(self):
             return (self.get_extra_ffmpeg_parameters()
                 + [
                     '-speed', '2'
