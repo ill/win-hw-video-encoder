@@ -110,6 +110,8 @@ class Experiment:
             'encoding_time_s',
             'encoding_time_pass1_s',
             'encoding_time_pass2_s',
+            'width',
+            'height',
             'file_bytes'
         ])
 
@@ -300,6 +302,8 @@ class Experiment:
                 str(self.transcode_seconds),
                 str(self.transcode_pass_1_seconds) if self.transcode_pass_1_seconds is not None else 'N/A',
                 str(self.transcode_pass_2_seconds) if self.transcode_pass_2_seconds is not None else 'N/A',
+                str(self.output_width),
+                str(self.output_height),
                 f'{os.path.getsize(self.video_filename):,}'
             ])
 

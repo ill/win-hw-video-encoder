@@ -1,74 +1,27 @@
-import Experiment
+import CQExperiment
 
 # Based on https://developers.google.com/media/vp9/settings/vod
-# I'll later add support for other screen resolutions, for now it's only testing 1080p
-
-class CQGoogleExperiment(Experiment.Experiment):
+class CQGoogleExperiment(CQExperiment.Experiment):
     def __init__(self, input_video_file_name, output_video_file_basename):
         super().__init__('CQGoogle', input_video_file_name, output_video_file_basename)
-
-    def get_extra_csv_header_columns(self):
-        return ['crf',
-                'target_bitrate',
-                'min_bitrate',
-                'max_bitrate']
     
     def run_experiment(self):
         super().run_experiment()
 
-        # for crf in range(0, 63, 5):
-        #     CQGoogleExperiment.SubExperiment(self, crf).run_sub_experiment()
-
-        # for crf in range(0, 63, 5):
-        #     CQGoogleExperiment.SubExperiment(self, crf, two_pass_encoding = True).run_sub_experiment()
-
-        #CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610).run_sub_experiment()
-        #CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610, two_pass_encoding=True).run_sub_experiment()
-        
-        print(self.get_scaled_down_common_resolutions())
-        print(self.get_scaled_down_rbx_resolutions())
-        print(self.get_scaled_down_all_resolutions())
-
-        #CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610).run_sub_experiment()
-        #CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610, two_pass_encoding=True).run_sub_experiment()
-
-    class SubExperiment(Experiment.Experiment.SubExperiment):
-        def __init__(self, experiment, crf, target_bitrate, min_bitrate, max_bitrate, output_width: int = 1920, output_height: int = 1080, two_pass_encoding = False):
-            super().__init__(experiment, f'crf-{crf}-bp-{target_bitrate}-mnbp-{min_bitrate}-mxbp-{max_bitrate}-w-{output_width}-h-{output_height}-{"2Pass" if two_pass_encoding else "1Pass"}', output_width, output_height, two_pass_encoding)
-            self.crf = crf
-            self.target_bitrate = target_bitrate
-            self.min_bitrate = min_bitrate
-            self.max_bitrate = max_bitrate
-
-        # Some of this is currently hardcoded for 1080p, I'll make that more configurable later
-
-        def get_extra_ffmpeg_parameters(self):
-            return [
-                '-crf', str(self.crf),
-                '-b:v', str(self.target_bitrate),
-                '-minrate', str(self.min_bitrate),
-                '-maxrate', str(self.max_bitrate),
-                '-quality', 'good',
-                '-threads', '4',
-                '-tile-columns', '2'
-            ]
-        
-        def get_extra_ffmpeg_parameters_pass1(self):
-            return (self.get_extra_ffmpeg_parameters()
-                + [
-                    '-speed', '4'
-                ])
-        
-        def get_extra_ffmpeg_parameters_pass2(self):
-            return (self.get_extra_ffmpeg_parameters()
-                + [
-                    '-speed', '2'
-                ])
-        
-        def get_extra_csv_columns(self):
-            return [
-                str(self.crf),
-                str(self.target_bitrate),
-                str(self.min_bitrate),
-                str(self.max_bitrate)
-            ]
+        for res in self.get_scaled_down_common_resolutions():
+            if res[0] == 1080:
+                CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610).run_sub_experiment()
+                CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610, two_pass_encoding=True).run_sub_experiment()
+            elif res[0] == 1280:
+                CQGoogleExperiment.SubExperiment(self, crf=32, target_bitrate=1024, min_bitrate=512, max_bitrate=1485).run_sub_experiment()
+                CQGoogleExperiment.SubExperiment(self, crf=32, target_bitrate=1024, min_bitrate=512, max_bitrate=1485, two_pass_encoding=True).run_sub_experiment()
+            elif res[0] == 640:
+                if res[1] <= 360:
+                    CQGoogleExperiment.SubExperiment(self, crf=36, target_bitrate=276, min_bitrate=138, max_bitrate=400).run_sub_experiment()
+                    CQGoogleExperiment.SubExperiment(self, crf=36, target_bitrate=276, min_bitrate=138, max_bitrate=400, two_pass_encoding=True).run_sub_experiment()
+                else:
+                    CQGoogleExperiment.SubExperiment(self, crf=33, target_bitrate=750, min_bitrate=375, max_bitrate=1088).run_sub_experiment()
+                    CQGoogleExperiment.SubExperiment(self, crf=33, target_bitrate=750, min_bitrate=375, max_bitrate=1088, two_pass_encoding=True).run_sub_experiment()
+            else:
+                CQGoogleExperiment.SubExperiment(self, crf=37, target_bitrate=150, min_bitrate=75, max_bitrate=218).run_sub_experiment()
+                CQGoogleExperiment.SubExperiment(self, crf=37, target_bitrate=150, min_bitrate=75, max_bitrate=218, two_pass_encoding=True).run_sub_experiment()
