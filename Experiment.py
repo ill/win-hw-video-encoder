@@ -16,15 +16,17 @@ class Experiment:
         self.base_directory = f"Out/{experiment_name}/{self.output_video_file_basename}"
 
         os.makedirs(self.base_directory, exist_ok=True)
-
+        
         self.csv_file_name = f"{self.base_directory}/{self.output_video_file_basename}-{experiment_name}.csv"
         self.input_ffprobe_filename = f"{self.base_directory}/{self.output_video_file_basename}-{self.experiment_name}.input_probe.json"
+        self.input_csv_file_name = f"{self.base_directory}/{self.output_video_file_basename}-{experiment_name}.input_info.csv"
         self.csv_file = None
 
         self.input_width = None
         self.input_height = None
         self.input_duration_s = None
         self.input_bitrate = None
+        self.input_bytes = None
 
     def ffprobe(self):
         print('==================\nRunning ffprobe on Input...')
@@ -51,8 +53,50 @@ class Experiment:
                 self.input_bitrate = stream.get('bit_rate')
                 break
 
-        print (f"==================\nInput: {self.input_video_file_name}\n\twidth:{self.input_width}\n\theight:{self.input_height}\n\tduration_s:{self.input_duration_s}\n\tbitrate:{self.input_bitrate}")
+        self.input_bytes = os.path.getsize(self.input_video_file_name)
+
+        print (f"==================\nInput: {self.input_video_file_name}\
+            \n\twidth:{str(self.input_width) if self.input_width is not None else 'N/A'}\
+            \n\theight:{str(self.input_height) if self.input_height is not None else 'N/A'}\
+            \n\tduration_s:{str(self.input_duration_s) if self.input_duration_s is not None else 'N/A'}\
+            \n\tbitrate:{f'{int(self.input_bitrate):,}' if self.input_bitrate is not None else 'N/A'}\
+            \n\tsize_bytes:{f'{self.input_bytes:,}' if self.input_bytes is not None else 'N/A'}")
         
+    def write_input_csv(self):
+        # Create a csv that outputs info about the experiment and the input itself
+        csv_header = (self.get_extra_input_csv_header_columns() +
+        [
+            #'link', 
+            'input',
+            'width',
+            'height', 
+            'duration_s',
+            'bitrate',
+            'file_bytes'
+        ])
+
+        csv_row = (self.get_extra_input_csv_columns() +
+        [
+            #s3_link,
+            self.input_video_file_name,
+            str(self.input_width) if self.input_width is not None else 'N/A',
+            str(self.input_height) if self.input_height is not None else 'N/A',
+            str(self.input_duration_s) if self.input_duration_s is not None else 'N/A',
+            f'{int(self.input_bitrate):,}' if self.input_bitrate is not None else 'N/A',
+            f'{self.input_bytes:,}' if self.input_bytes is not None else 'N/A',
+        ])
+
+        with open(self.input_csv_file_name, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(csv_header)
+            writer.writerow(csv_row)
+
+    def get_extra_input_csv_header_columns(self):
+        return []
+    
+    def get_extra_input_csv_columns(self):
+        return []
+
     def create_csv(self):
         # Create and write header to csv
         csv_header = (self.get_extra_csv_header_columns() +
@@ -79,6 +123,7 @@ class Experiment:
     def run_experiment(self):
         self.ffprobe()
         self.process_input()
+        self.write_input_csv()
         self.create_csv()
 
     class SubExperiment:
@@ -209,7 +254,11 @@ class Experiment:
             if self.actual_bitrate is not None:
                 self.bpb = self.vmaf_harmonic_mean / math.log2(int(self.actual_bitrate))
 
-            print (f"==================\nResults: {self.get_sub_experiment_name()}\n\tvmaf_harmonic_mean:{self.vmaf_harmonic_mean}\n\tvmaf_std_dev:{self.vmaf_std_dev}\n\tactual_bitrate:{self.actual_bitrate}\n\tbpb:{self.bpb}")
+            print (f"==================\nResults: {self.get_sub_experiment_name()}\
+                \n\tvmaf_harmonic_mean:{self.vmaf_harmonic_mean}\
+                \n\tvmaf_std_dev:{self.vmaf_std_dev}\
+                \n\tactual_bitrate:{self.actual_bitrate}\
+                \n\tbpb:{self.bpb}")
 
         def write_csv_row(self):
             # Prepare data row
@@ -217,10 +266,10 @@ class Experiment:
             [
                 #s3_link,
                 self.video_filename,
-                str(self.actual_bitrate) if self.actual_bitrate is not None else 'N/A',
+                f'{int(self.actual_bitrate):,}' if self.actual_bitrate is not None else 'N/A',
                 self.vmaf_harmonic_mean,
                 self.vmaf_std_dev,
-                str(self.bpb) if self.bpb is not None else 'N/A',
+                f'{self.bpb:,}' if self.bpb is not None else 'N/A',
                 str(self.transcode_seconds),
                 str(self.transcode_pass_1_seconds) if self.transcode_pass_1_seconds is not None else 'N/A',
                 str(self.transcode_pass_2_seconds) if self.transcode_pass_2_seconds is not None else 'N/A',
