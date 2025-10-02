@@ -24,6 +24,21 @@ class CQGoogleExperiment(Experiment.Experiment):
 
         #CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610).run_sub_experiment()
         #CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610, two_pass_encoding=True).run_sub_experiment()
+        
+        res_1080p = self.scale_down_to_fit(1920, 1080)
+        res_720p = self.scale_down_to_fit(1280, 720)
+        res_480p = self.scale_down_to_fit(640, 480)
+        res_360p = self.scale_down_to_fit(640, 360)
+        res_240p = self.scale_down_to_fit(320, 240)
+
+        print(res_1080p)
+        print(res_720p)
+        print(res_480p)
+        print(res_360p)
+        print(res_240p)
+
+        #CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610).run_sub_experiment()
+        #CQGoogleExperiment.SubExperiment(self, crf=31, target_bitrate=1800, min_bitrate=900, max_bitrate=2610, two_pass_encoding=True).run_sub_experiment()
 
     class SubExperiment(Experiment.Experiment.SubExperiment):
         def __init__(self, experiment, crf, target_bitrate, min_bitrate, max_bitrate, output_width: int = 1920, output_height: int = 1080, two_pass_encoding = False):
