@@ -25,7 +25,7 @@ class CQExperiment(Experiment.Experiment):
                 '-minrate', str(self.min_bitrate),
                 '-maxrate', str(self.max_bitrate),
                 '-quality', 'good',
-                '-threads', self.threads,
+                '-threads', str(self.threads),
                 '-tile-columns', '2'
             ]
         
