@@ -101,21 +101,26 @@ class Experiment:
         # Create and write header to csv
         csv_header = (self.get_extra_csv_header_columns() +
         [
-            #'link', 
-            'video id',
-            'actual_bitrate',
+            'width',
+            'height',
+            
             'vmaf_mean',
             'vmaf_harmonic_mean',
             'vmaf_min',
             'vmaf_max',
             'vmaf_stddev',
-            'bpb',
+
             'encoding_time_s',
             'encoding_time_pass1_s',
             'encoding_time_pass2_s',
-            'width',
-            'height',
-            'file_bytes'
+
+            'file_bytes',
+
+            'actual_bitrate',
+            'bpb',            
+            
+            'video id',
+            #'link', 
         ])
 
         with open(self.csv_file_name, 'w', newline='') as f:
@@ -305,21 +310,26 @@ class Experiment:
             # Prepare data row
             csv_row = (self.get_extra_csv_columns() +
             [
-                #s3_link,
-                self.video_filename,
-                f'{int(self.actual_bitrate):,}' if self.actual_bitrate is not None else 'N/A',
+                str(self.output_width),
+                str(self.output_height),
+                                
                 self.vmaf_mean,
                 self.vmaf_harmonic_mean,
                 self.vmaf_min,
                 self.vmaf_max,
                 self.vmaf_std_dev,
-                f'{self.bpb:,}' if self.bpb is not None else 'N/A',
+
                 str(self.transcode_seconds),
                 str(self.transcode_pass_1_seconds) if self.transcode_pass_1_seconds is not None else 'N/A',
                 str(self.transcode_pass_2_seconds) if self.transcode_pass_2_seconds is not None else 'N/A',
-                str(self.output_width),
-                str(self.output_height),
-                f'{os.path.getsize(self.video_filename):,}'
+
+                f'{os.path.getsize(self.video_filename):,}',
+
+                f'{int(self.actual_bitrate):,}' if self.actual_bitrate is not None else 'N/A',
+                f'{self.bpb:,}' if self.bpb is not None else 'N/A',
+                
+                self.video_filename,
+                #s3_link,
             ])
 
             # Append row to CSV
