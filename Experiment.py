@@ -126,6 +126,13 @@ class Experiment:
         self.write_input_csv()
         self.create_csv()
 
+    def scale_down_to_fit(self, destination_long_side: int, destination_short_side: int) -> tuple[int, int]:
+        transposed = self.input_width < self.input_height
+        long_side = max(self.input_width, self.input_height)
+        short_side = min(self.input_width, self.input_height)
+
+        return Util.maybe_scale_down_to_fit(long_side, short_side, destination_long_side, destination_short_side, transposed)
+
     class SubExperiment:
         def __init__(self, experiment, sub_experiment_name: str, output_width: int = 1920, output_height: int = 1080, two_pass_encoding: bool = False):
             self.experiment = experiment
@@ -162,7 +169,7 @@ class Experiment:
         def ffmpeg(self, params):
             return Util.ffmpeg(self.experiment.input_video_file_name,
             [
-                '-vf', 'scale=1920:-1',
+                '-vf', f'scale={self.output_width}:{self.output_height}',
                 '-fps_mode', 'passthrough',
 
                 # drop metadata things
