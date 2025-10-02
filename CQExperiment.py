@@ -5,16 +5,23 @@ class CQExperiment(Experiment.Experiment):
         return ['crf',
                 'target_bitrate',
                 'min_bitrate',
-                'max_bitrate']
+                'max_bitrate',
+                'threads',
+                'tile-columns',
+                'speed',
+                'speed_2']
 
     class SubExperiment(Experiment.Experiment.SubExperiment):
-        def __init__(self, experiment, crf, target_bitrate_kbps, min_bitrate_kbps, max_bitrate_kbps, output_width: int = 1920, output_height: int = 1080, threads: int = 1, two_pass_encoding: bool = False):
-            super().__init__(experiment, f'crf-{crf}-bp-{target_bitrate_kbps}k-mnbp-{min_bitrate_kbps}k-mxbp-{max_bitrate_kbps}k-w-{output_width}-h-{output_height}-t-{threads}-{"2Pass" if two_pass_encoding else "1Pass"}', output_width, output_height, two_pass_encoding)
+        def __init__(self, experiment, crf, target_bitrate_kbps, min_bitrate_kbps, max_bitrate_kbps, output_width: int = 1920, output_height: int = 1080, threads: int = 1, tile_columns: int = 0, speed: int = 0, speed_2: int = 0, two_pass_encoding: bool = False):
+            super().__init__(experiment, f'crf-{crf}-bp-{target_bitrate_kbps}k-mnbp-{min_bitrate_kbps}k-mxbp-{max_bitrate_kbps}k-w-{output_width}-h-{output_height}-t-{threads}-tc-{tile_columns}-s-{speed}-s2-{speed_2}-{"2Pass" if two_pass_encoding else "1Pass"}', output_width, output_height, two_pass_encoding)
             self.crf = crf
             self.target_bitrate_kbps = target_bitrate_kbps
             self.min_bitrate_kbps = min_bitrate_kbps
             self.max_bitrate_kbps = max_bitrate_kbps
             self.threads = threads
+            self.tile_columns = tile_columns
+            self.speed = speed
+            self.speed_2 = speed_2
 
         # Some of this is currently hardcoded for 1080p, I'll make that more configurable later
 
@@ -26,19 +33,25 @@ class CQExperiment(Experiment.Experiment):
                 '-maxrate', f'{self.max_bitrate_kbps}k',
                 '-quality', 'good',
                 '-threads', str(self.threads),
-                '-tile-columns', '2'
+                '-tile-columns', str(self.tile_columns)
             ]
+        
+        def get_extra_ffmpeg_parameters_single_pass(self):
+            return (self.get_extra_ffmpeg_parameters()
+                + [
+                    '-speed', str(self.speed)
+                ])
         
         def get_extra_ffmpeg_parameters_pass1(self):
             return (self.get_extra_ffmpeg_parameters()
                 + [
-                    '-speed', '4'
+                    '-speed', str(self.speed)
                 ])
         
         def get_extra_ffmpeg_parameters_pass2(self):
             return (self.get_extra_ffmpeg_parameters()
                 + [
-                    '-speed', '2'
+                    '-speed', str(self.speed_2)
                 ])
         
         def get_extra_csv_columns(self):
@@ -46,5 +59,9 @@ class CQExperiment(Experiment.Experiment):
                 str(self.crf),
                 f'{self.target_bitrate_kbps}k',
                 f'{self.min_bitrate_kbps}k',
-                f'{self.max_bitrate_kbps}k'
+                f'{self.max_bitrate_kbps}k',
+                str(self.threads),
+                str(self.tile_columns),
+                str(self.speed),
+                str(self.speed_2)
             ]

@@ -246,11 +246,14 @@ class Experiment:
             else:
                 print('==================\nRunning one pass transcode...')
                 self.transcode_seconds = self.ffmpeg(
-                    self.get_extra_ffmpeg_parameters() 
+                    self.get_extra_ffmpeg_parameters_single_pass() 
                     + output_params)
 
         def get_extra_ffmpeg_parameters(self):
             return []
+        
+        def get_extra_ffmpeg_parameters_single_pass(self):
+            return self.get_extra_ffmpeg_parameters()
         
         def get_extra_ffmpeg_parameters_pass1(self):
             return self.get_extra_ffmpeg_parameters()
