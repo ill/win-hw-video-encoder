@@ -250,7 +250,7 @@ class Experiment:
         def ffprobe(self):
             print('==================\nRunning ffprobe on Output...')
 
-            Util.ffprobe(self.video_filename, self.ffprobe_filename, show_streams=True)
+            Util.ffprobe(self.video_filename, self.output_ffprobe_filename, show_streams=True)
 
         def vmaf(self):
             print('==================\nRunning vmaf...')
@@ -267,7 +267,7 @@ class Experiment:
             # Read VMAF and probe data
             with open(self.vmaf_filename, 'r') as f:
                 vmaf_data = json.load(f)
-            with open(self.ffprobe_filename, 'r') as f:
+            with open(self.output_ffprobe_filename, 'r') as f:
                 probe_data = json.load(f)
 
             # Find video stream and get actual bitrate
