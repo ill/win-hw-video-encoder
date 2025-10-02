@@ -69,7 +69,7 @@ def ffmpeg(input, params = []) -> float:
 
     ffmpeg_cmd = ([
         'ffmpeg',
-        '-hide_banner'
+        '-hide_banner',
         '-i', input,
     ]
     + params)
