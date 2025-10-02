@@ -104,7 +104,10 @@ class Experiment:
             #'link', 
             'video id',
             'actual_bitrate',
-            'vmaf_hmean', 
+            'vmaf_mean',
+            'vmaf_harmonic_mean',
+            'vmaf_min',
+            'vmaf_max',
             'vmaf_stddev',
             'bpb',
             'encoding_time_s',
@@ -172,7 +175,10 @@ class Experiment:
             self.transcode_seconds = 0.0
             self.transcode_pass_1_seconds = None
             self.transcode_pass_2_seconds = None
+            self.vmaf_mean = 0.0
             self.vmaf_harmonic_mean = 0.0
+            self.vmaf_min = 0.0
+            self.vmaf_max = 0.0
             self.vmaf_std_dev = 0.0
             self.actual_bitrate = None
             self.bpb = None    
@@ -277,14 +283,20 @@ class Experiment:
                     break
 
             # Extract required data
+            self.vmaf_mean = vmaf_data["pooled_metrics"]["vmaf"]["harmonic_mean"]
             self.vmaf_harmonic_mean = vmaf_data["pooled_metrics"]["vmaf"]["harmonic_mean"]
+            self.vmaf_min = vmaf_data["pooled_metrics"]["vmaf"]["min"]
+            self.vmaf_max = vmaf_data["pooled_metrics"]["vmaf"]["max"]
             vmafs = [x["metrics"]["vmaf"] for x in vmaf_data["frames"]]
             self.vmaf_std_dev = statistics.stdev(vmafs)
             if self.actual_bitrate is not None:
                 self.bpb = self.vmaf_harmonic_mean / math.log2(int(self.actual_bitrate))
 
             print (f"==================\nResults: {self.get_sub_experiment_name()}\
+                \n\tvmaf_mean:{self.vmaf_mean}\
                 \n\tvmaf_harmonic_mean:{self.vmaf_harmonic_mean}\
+                \n\tvmaf_min:{self.vmaf_min}\
+                \n\tvmaf_max:{self.vmaf_max}\
                 \n\tvmaf_std_dev:{self.vmaf_std_dev}\
                 \n\tactual_bitrate:{self.actual_bitrate}\
                 \n\tbpb:{self.bpb}")
@@ -296,7 +308,10 @@ class Experiment:
                 #s3_link,
                 self.video_filename,
                 f'{int(self.actual_bitrate):,}' if self.actual_bitrate is not None else 'N/A',
+                self.vmaf_mean,
                 self.vmaf_harmonic_mean,
+                self.vmaf_min,
+                self.vmaf_max,
                 self.vmaf_std_dev,
                 f'{self.bpb:,}' if self.bpb is not None else 'N/A',
                 str(self.transcode_seconds),

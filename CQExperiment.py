@@ -8,12 +8,12 @@ class CQExperiment(Experiment.Experiment):
                 'max_bitrate']
 
     class SubExperiment(Experiment.Experiment.SubExperiment):
-        def __init__(self, experiment, crf, target_bitrate, min_bitrate, max_bitrate, output_width: int = 1920, output_height: int = 1080, threads: int = 1, two_pass_encoding: bool = False):
-            super().__init__(experiment, f'crf-{crf}-bp-{target_bitrate}-mnbp-{min_bitrate}-mxbp-{max_bitrate}-w-{output_width}-h-{output_height}-t-{threads}-{"2Pass" if two_pass_encoding else "1Pass"}', output_width, output_height, two_pass_encoding)
+        def __init__(self, experiment, crf, target_bitrate_kbps, min_bitrate_kbps, max_bitrate_kbps, output_width: int = 1920, output_height: int = 1080, threads: int = 1, two_pass_encoding: bool = False):
+            super().__init__(experiment, f'crf-{crf}-bp-{target_bitrate_kbps}k-mnbp-{min_bitrate_kbps}k-mxbp-{max_bitrate_kbps}k-w-{output_width}-h-{output_height}-t-{threads}-{"2Pass" if two_pass_encoding else "1Pass"}', output_width, output_height, two_pass_encoding)
             self.crf = crf
-            self.target_bitrate = target_bitrate
-            self.min_bitrate = min_bitrate
-            self.max_bitrate = max_bitrate
+            self.target_bitrate_kbps = target_bitrate_kbps
+            self.min_bitrate_kbps = min_bitrate_kbps
+            self.max_bitrate_kbps = max_bitrate_kbps
             self.threads = threads
 
         # Some of this is currently hardcoded for 1080p, I'll make that more configurable later
@@ -21,9 +21,9 @@ class CQExperiment(Experiment.Experiment):
         def get_extra_ffmpeg_parameters(self):
             return [
                 '-crf', str(self.crf),
-                '-b:v', str(self.target_bitrate),
-                '-minrate', str(self.min_bitrate),
-                '-maxrate', str(self.max_bitrate),
+                '-b:v', f'{self.target_bitrate_kbps}k',
+                '-minrate', f'{self.min_bitrate_kbps}k',
+                '-maxrate', f'{self.max_bitrate_kbps}k',
                 '-quality', 'good',
                 '-threads', str(self.threads),
                 '-tile-columns', '2'
@@ -44,7 +44,7 @@ class CQExperiment(Experiment.Experiment):
         def get_extra_csv_columns(self):
             return [
                 str(self.crf),
-                str(self.target_bitrate),
-                str(self.min_bitrate),
-                str(self.max_bitrate)
+                f'{self.target_bitrate_kbps}k',
+                f'{self.min_bitrate_kbps}k',
+                f'{self.max_bitrate_kbps}k'
             ]
