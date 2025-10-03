@@ -164,7 +164,11 @@ class Experiment:
     def get_scaled_down_all_resolutions(self) -> list[tuple[int, int]]:
         return self.get_scaled_down_to_fit_resolutions(Util.RES_ALL)
     class SubExperiment:
-        def __init__(self, experiment, sub_experiment_name: str, output_width: int = 1920, output_height: int = 1080, two_pass_encoding: bool = False):
+        def __init__(self, experiment,
+                     sub_experiment_name: str,
+                     output_width: int = 1920,
+                     output_height: int = 1080,
+                     two_pass_encoding: bool = False):
             self.experiment = experiment
             self.sub_experiment_name = sub_experiment_name
             self.output_width = output_width
