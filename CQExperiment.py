@@ -9,7 +9,7 @@ class CQExperiment(Experiment.Experiment):
                 'threads',
                 'tile-columns',
                 'speed',
-                'speed_2']
+                'speed_pass2']
 
     class SubExperiment(Experiment.Experiment.SubExperiment):
         class CQParams:
@@ -19,8 +19,20 @@ class CQExperiment(Experiment.Experiment):
             max_bitrate_kbps: int = 0
             threads: int = 1
             tile_columns: int = 1
-            speed: int = 0
+            speed_single_pass: int = 0
+            speed_pass1: int = 0
             speed_pass2: int = 0
+
+            def __str__(self):
+                return (f'\n\tcrf: {self.crf}'
+                    f'\n\ttarget_bitrate_kbps: {self.target_bitrate_kbps}'
+                    f'\n\tmin_bitrate_kbps: {self.min_bitrate_kbps}'
+                    f'\n\tmax_bitrate_kbps: {self.max_bitrate_kbps}'
+                    f'\n\tthreads: {self.threads}'
+                    f'\n\ttile_columns: {self.tile_columns}'
+                    f'\n\tspeed_single_pass: {self.speed_single_pass}'
+                    f'\n\tspeed_pass1: {self.speed_pass1}'
+                    f'\n\tspeed_pass2: {self.speed_pass2}')
 
         def __init__(self, experiment,
                      cq_params: CQParams,
@@ -36,9 +48,8 @@ class CQExperiment(Experiment.Experiment):
                              f'-h-{output_height}'
                              f'-t-{cq_params.threads}'
                              f'-tc-{cq_params.tile_columns}'
-                             f'-s-{cq_params.speed}'
-                             f'-s2-{cq_params.speed_pass2}'
-                             f'-{"2Pass" if two_pass_encoding else "1Pass"}',
+                             f'-{"2Pass" if two_pass_encoding else "1Pass"}'
+                             f'-{f"s1-{cq_params.speed_pass1}-s2-{cq_params.speed_pass2}" if two_pass_encoding else f"s-{cq_params.speed_single_pass}"}',
                              output_width,
                              output_height,
                              two_pass_encoding)
@@ -60,13 +71,13 @@ class CQExperiment(Experiment.Experiment):
         def get_extra_ffmpeg_parameters_single_pass(self):
             return (self.get_extra_ffmpeg_parameters()
                 + [
-                    '-speed', str(self.cq_params.speed)
+                    '-speed', str(self.cq_params.speed_single_pass)
                 ])
         
         def get_extra_ffmpeg_parameters_pass1(self):
             return (self.get_extra_ffmpeg_parameters()
                 + [
-                    '-speed', str(self.cq_params.speed)
+                    '-speed', str(self.cq_params.speed_pass1)
                 ])
         
         def get_extra_ffmpeg_parameters_pass2(self):
@@ -83,6 +94,6 @@ class CQExperiment(Experiment.Experiment):
                 f'{self.cq_params.max_bitrate_kbps}k',
                 str(self.cq_params.threads),
                 str(self.cq_params.tile_columns),
-                str(self.cq_params.speed),
-                str(self.cq_params.speed_pass2)
+                str(self.cq_params.speed_pass1) if self.two_pass_encoding else str(self.cq_params.speed_single_pass),
+                str(self.cq_params.speed_pass2) if self.two_pass_encoding else 'N/A'
             ]
