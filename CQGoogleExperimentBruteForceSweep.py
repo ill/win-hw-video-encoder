@@ -6,4 +6,6 @@ class CQGoogleExperimentBruteForceSweep(CQGoogleExperimentBase.CQGoogleExperimen
         super().__init__('CQGoogleBruteForceSweep', input_video_file_name, output_video_file_basename)
 
     def run_experiment_on_resolution(self, resolution: tuple[int, int]):
-        super().run_experiment_on_resolution(resolution=resolution)
+        cq_params_base = CQGoogleExperimentBase.get_google_cq_params(resolution)
+
+        super().run_experiment_on_cq_params(resolution=resolution, cq_params=cq_params_base)
