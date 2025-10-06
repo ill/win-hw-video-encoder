@@ -64,27 +64,27 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         print(f'\ttile_columns: {tile_columns_min} - {tile_columns_max} step: {tile_columns_step}')
 
         for crf in range(crf_min,
-                         crf_max + 1,
+                         crf_max + math.sign(crf_step),
                          crf_step):
             for fps in framerates:
                 for gsun in gsuns:
                     target_bitrate = Util.get_target_bitrate_kbps(resolution[0], resolution[1], fps, gsun)
 
                     for min_bitrate_pct in range(min_bitrate_pct_min,
-                                                 min_bitrate_pct_max + 1,
+                                                 min_bitrate_pct_max + Util.sign(min_bitrate_pct_step),
                                                  min_bitrate_pct_step):
                         for max_bitrate_pct in range(max_bitrate_pct_min,
-                                                     max_bitrate_pct_max + 1,
+                                                     max_bitrate_pct_max + Util.sign(max_bitrate_pct_step),
                                                      max_bitrate_pct_step):
                             for threads in range(threads_min,
-                                                 threads_max + 1,
+                                                 threads_max + Util.sign(threads_step),
                                                  threads_step):
                                 for tile_columns in range(tile_columns_min,
-                                                          tile_columns_max + 1,
+                                                          tile_columns_max + Util.sign(tile_columns_step),
                                                           tile_columns_step):
 
                                     for speed_single_pass in range(speed_single_pass_min,
-                                                                   speed_single_pass_max + 1,
+                                                                   speed_single_pass_max + Util.sign(speed_single_pass_step),
                                                                    speed_single_pass_step):
                                         cq_params = CQExperiment.CQExperiment.SubExperiment.CQParams()
 
@@ -105,10 +105,10 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
                                                                                   cq_params=cq_params)
 
                                     for speed_pass_1 in range(speed_pass_1_min,
-                                                              speed_pass_1_max + 1,
+                                                              speed_pass_1_max + Util.sign(speed_pass_1_step),
                                                               speed_pass_1_step):
                                         for speed_pass_2 in range(speed_pass_2_min,
-                                                                  speed_pass_2_max + 1,
+                                                                  speed_pass_2_max + Util.sign(speed_pass_2_step),
                                                                   speed_pass_2_step):
                                             cq_params = CQExperiment.CQExperiment.SubExperiment.CQParams()
 
