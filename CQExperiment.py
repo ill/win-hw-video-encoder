@@ -57,8 +57,6 @@ class CQExperiment(Experiment.Experiment):
                              two_pass_encoding = two_pass_encoding)
             self.cq_params = cq_params
 
-        # Some of this is currently hardcoded for 1080p, I'll make that more configurable later
-
         def get_extra_ffmpeg_parameters(self):
             return [
                 '-crf', str(self.cq_params.crf),
