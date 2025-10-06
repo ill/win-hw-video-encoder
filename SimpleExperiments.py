@@ -30,11 +30,11 @@ def main():
 
     #CRFExperiment.CRFExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
 
-    #CQGoogleExperiment.CQGoogleExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
+    CQGoogleExperiment.CQGoogleExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
     #CQGoogleExperiment.CQGoogleExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
     #CQGoogleExperiment.CQGoogleExperiment('sonichd.mp4', 'sonichd').run_experiment()
 
-    CQGoogleExperimentBruteForceSweep.CQGoogleExperimentBruteForceSweep('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
+    #CQGoogleExperimentBruteForceSweep.CQGoogleExperimentBruteForceSweep('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
 
     print('Done.')
 

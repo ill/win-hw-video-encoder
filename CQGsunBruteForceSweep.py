@@ -6,7 +6,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         crf_max = 63
         crf_step = 4
 
-        
+
 
         target_bitrate_min = max(0, cq_params_base.target_bitrate_kbps - 100)
         target_bitrate_max = cq_params_base.target_bitrate_kbps + 100

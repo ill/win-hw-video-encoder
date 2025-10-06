@@ -36,8 +36,9 @@ class CQExperiment(Experiment.Experiment):
 
         def __init__(self, experiment,
                      cq_params: CQParams,
-                     output_width: int = 1920,
-                     output_height: int = 1080,
+                     output_width: int = -1,
+                     output_height: int = -1,
+                     output_fps: int = -1,
                      two_pass_encoding: bool = False):
             super().__init__(experiment,
                              f'crf-{cq_params.crf}'
@@ -50,9 +51,10 @@ class CQExperiment(Experiment.Experiment):
                              f'-tc-{cq_params.tile_columns}'
                              f'-{"2Pass" if two_pass_encoding else "1Pass"}'
                              f'-{f"s1-{cq_params.speed_pass1}-s2-{cq_params.speed_pass2}" if two_pass_encoding else f"s-{cq_params.speed_single_pass}"}',
-                             output_width,
-                             output_height,
-                             two_pass_encoding)
+                             output_width = output_width,
+                             output_height = output_height,
+                             output_fps = output_fps,
+                             two_pass_encoding = two_pass_encoding)
             self.cq_params = cq_params
 
         # Some of this is currently hardcoded for 1080p, I'll make that more configurable later

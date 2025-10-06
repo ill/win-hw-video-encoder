@@ -18,7 +18,7 @@ class CRFExperiment(Experiment.Experiment):
 
     class SubExperiment(Experiment.Experiment.SubExperiment):
         def __init__(self, experiment, crf, two_pass_encoding = False):
-            super().__init__(experiment, str(crf), two_pass_encoding)
+            super().__init__(experiment, str(crf), two_pass_encoding = two_pass_encoding)
             self.crf = crf
 
         def get_extra_ffmpeg_parameters(self):
