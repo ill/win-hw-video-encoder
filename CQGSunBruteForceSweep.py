@@ -64,7 +64,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         print(f'\ttile_columns: {tile_columns_min} - {tile_columns_max} step: {tile_columns_step}')
 
         for crf in range(crf_min,
-                         crf_max + math.sign(crf_step),
+                         crf_max + Util.sign(crf_step),
                          crf_step):
             for fps in framerates:
                 for gsun in gsuns:
