@@ -4,6 +4,7 @@ import subprocess
 
 RES_1080p = (1920, 1080)
 RES_720p = (1280, 720)
+RES_540p = (960, 540)
 RES_480p = (640, 480)
 RES_360p = (640, 360)
 RES_240p = (320, 240)
@@ -28,6 +29,7 @@ RES_RBX = [
 RES_ALL = [
     RES_1080p,
     RES_720p,
+    RES_540p,
     RES_480p,
     RES_360p,
     RES_240p,
@@ -36,6 +38,8 @@ RES_ALL = [
 ]
 
 GSUN = 0.07
+
+VP9_TILE_DIM = 256
 
 HEADER = '=================='
 

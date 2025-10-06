@@ -1,3 +1,5 @@
+import math
+
 import CQExperiment
 import Util
 
@@ -17,27 +19,28 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         crf_max = 63
         crf_step = 4
 
-        gsuns = [1.0, 1.5, 2.0, 2.5, 3.0]
+        gsuns = [1.0, 1.25, 1.5, 1.75]
 
         # Try the original bitrate and 30 fps
         # This is a set so if original bitrate is 30 we're good on a single set element
         framerates = {30, self.input_fps}
 
-        min_bitrate_pct_min = 0
-        min_bitrate_pct_max = 100
-        min_bitrate_pct_step = 10
+        min_bitrate_pct_min = 100
+        min_bitrate_pct_max = 50
+        min_bitrate_pct_step = -10
 
-        max_bitrate_pct_min = 100
-        max_bitrate_pct_max = 200
-        max_bitrate_pct_step = 10
+        max_bitrate_pct_min = 150
+        max_bitrate_pct_max = 100
+        max_bitrate_pct_step = -10
 
-        threads_min = 1
-        threads_max = 16
-        threads_step = 1
+        threads_min = 4
+        threads_max = 1
+        threads_step = -1
 
-        tile_columns_min = 0
-        tile_columns_max = (resolution[1] // 256) + 1
-        tile_columns_step = 1
+        tile_columns_base = math.floor(math.log2(resolution[0] / Util.VP9_TILE_DIM)) if resolution[0] > Util.VP9_TILE_DIM else 0
+        tile_columns_min = tile_columns_base
+        tile_columns_max = 0
+        tile_columns_step = -1
 
         speed_single_pass_min = 0
         speed_single_pass_max = 5
@@ -53,10 +56,10 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
 
         print(f'{Util.HEADER}\nSweeping Values Between')
         print(f'\tcrf: {crf_min} - {crf_max} step: {crf_step}')
-        print(f'\tgsuns: {gsuns[0]} - {gsuns[len(gsuns) - 1]}')
+        print(f'\tgsuns: {min(gsuns)} - {max(gsuns)}')
         print(f'\tframerates:', end = ' ')
         Util.print_collection(framerates)
-        print(f'\ttarget_bitrates: {Util.get_target_bitrate_kbps(resolution[0], resolution[1], min(framerates), gsuns[0])} - {Util.get_target_bitrate_kbps(resolution[0], resolution[1], max(framerates), gsuns[len(gsuns) - 1])}')
+        print(f'\ttarget_bitrates: {Util.get_target_bitrate_kbps(resolution[0], resolution[1], min(framerates), min(gsuns))} - {Util.get_target_bitrate_kbps(resolution[0], resolution[1], max(framerates), max(gsuns))}')
         print(f'\tthreads: {threads_min} - {threads_max} step: {threads_step}')
         print(f'\ttile_columns: {tile_columns_min} - {tile_columns_max} step: {tile_columns_step}')
 

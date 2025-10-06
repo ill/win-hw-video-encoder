@@ -53,7 +53,7 @@ class Experiment:
                 self.input_width = stream.get('width')
                 self.input_height = stream.get('height')
                 self.input_bitrate = stream.get('bit_rate')
-                fps_str = stream.get('r_frame_rate')
+                fps_str = stream.get('avg_frame_rate')
                 self.input_fps = float(Fraction(fps_str)) if '/' in fps_str else float(fps_str)
                 break
 
