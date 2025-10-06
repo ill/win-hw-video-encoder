@@ -31,7 +31,7 @@ class Experiment:
         self.input_bytes = None
 
     def ffprobe(self):
-        print('==================\nRunning ffprobe on Input...')
+        print('{Util.HEADER}\nRunning ffprobe on Input...')
 
         Util.ffprobe(self.input_video_file_name, self.input_ffprobe_filename, show_streams=True,
         params = [
@@ -205,7 +205,7 @@ class Experiment:
             self.bpb = None    
 
         def run_sub_experiment(self):
-            print(f'==================\nRunning: {self.get_sub_experiment_name()}')
+            print(f'{Util.HEADER}\nRunning: {self.get_sub_experiment_name()}')
             self.transcode()
             self.ffprobe()
             self.vmaf()
@@ -238,7 +238,7 @@ class Experiment:
                 ]
 
             if self.two_pass_encoding:
-                print('==================\nRunning two pass transcode (Pass 1)...')
+                print('{Util.HEADER}\nRunning two pass transcode (Pass 1)...')
 
                 self.transcode_pass_1_seconds = self.ffmpeg(
                     self.get_extra_ffmpeg_parameters_pass1() 
@@ -248,7 +248,7 @@ class Experiment:
                         '-y'
                     ])
 
-                print('==================\nRunning two pass transcode (Pass 2)...')
+                print('{Util.HEADER}\nRunning two pass transcode (Pass 2)...')
 
                 self.transcode_pass_2_seconds = self.ffmpeg(
                     self.get_extra_ffmpeg_parameters_pass2() 
@@ -260,7 +260,7 @@ class Experiment:
                 self.transcode_seconds = self.transcode_pass_1_seconds + self.transcode_pass_2_seconds
 
             else:
-                print('==================\nRunning one pass transcode...')
+                print('{Util.HEADER}\nRunning one pass transcode...')
                 self.transcode_seconds = self.ffmpeg(
                     self.get_extra_ffmpeg_parameters_single_pass() 
                     + output_params)
@@ -278,12 +278,12 @@ class Experiment:
             return self.get_extra_ffmpeg_parameters()
 
         def ffprobe(self):
-            print('==================\nRunning ffprobe on Output...')
+            print('{Util.HEADER}\nRunning ffprobe on Output...')
 
             Util.ffprobe(self.video_filename, self.output_ffprobe_filename, show_streams=True)
 
         def vmaf(self):
-            print('==================\nRunning vmaf...')
+            print('{Util.HEADER}\nRunning vmaf...')
 
             Util.ffmpeg(self.experiment.input_video_file_name,
             [
@@ -316,7 +316,7 @@ class Experiment:
             if self.actual_bitrate is not None:
                 self.bpb = self.vmaf_harmonic_mean / math.log2(int(self.actual_bitrate))
 
-            print (f"==================\nResults: {self.get_sub_experiment_name()}\
+            print (f"{Util.HEADER}\nResults: {self.get_sub_experiment_name()}\
                 \n\tvmaf_mean:{self.vmaf_mean}\
                 \n\tvmaf_harmonic_mean:{self.vmaf_harmonic_mean}\
                 \n\tvmaf_min:{self.vmaf_min}\

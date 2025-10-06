@@ -87,7 +87,7 @@ class CQGoogleExperimentBase(CQExperiment.CQExperiment):
         self.run_experiment_on_cq_params_two_pass(resolution, cq_params)
 
     def run_experiment_on_cq_params_one_pass(self, resolution: tuple[int, int], cq_params: CQExperiment.CQExperiment.SubExperiment.CQParams):
-        print(f'==================\nRunning Resolution One Pass: {resolution}'
+        print(f'{Util.HEADER}\nRunning Resolution One Pass: {resolution}'
               f'{str(cq_params)}')
 
         # One Pass
@@ -97,7 +97,7 @@ class CQGoogleExperimentBase(CQExperiment.CQExperiment):
                                              output_height=resolution[1]).run_sub_experiment()
 
     def run_experiment_on_cq_params_two_pass(self, resolution: tuple[int, int], cq_params: CQExperiment.CQExperiment.SubExperiment.CQParams):
-        print(f'==================\nRunning Resolution Two Pass: {resolution}'
+        print(f'{Util.HEADER}\nRunning Resolution Two Pass: {resolution}'
               f'{str(cq_params)}')
 
         # Two Pass

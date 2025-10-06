@@ -62,14 +62,17 @@ def maybe_scale_down_to_fit(current_long_side: int, current_short_side: int, max
     return (short_side if transposed else long_side, 
             long_side if transposed else short_side)
 
-def print_command(command = []):
-    for arg in command:
+def print_collection(collection):
+    for arg in collection:
         print (arg, end = ' ')
     print('\n')
 
+def get_target_bitrate_kbps(width, height, fps, gsun) -> int:
+    return int(width * height * fps * gsun * GSUN / 1000)
+
 # Runs ffmpeg and returns the time it took to run
 def ffmpeg(input, params = []) -> float:
-    print('==================\nRunning ffmpeg...')
+    print('{Util.HEADER}\nRunning ffmpeg...')
 
     ffmpeg_cmd = ([
         'ffmpeg',
@@ -78,7 +81,7 @@ def ffmpeg(input, params = []) -> float:
     ]
     + params)
 
-    print_command(ffmpeg_cmd)
+    print_collection(ffmpeg_cmd)
 
     start = time.perf_counter()
     result = subprocess.run(ffmpeg_cmd)
@@ -90,7 +93,7 @@ def ffmpeg(input, params = []) -> float:
     return end - start
 
 def ffprobe(input, output, show_frames = False, show_streams = False, params = []):
-    print('==================\nRunning ffprobe...')
+    print('{Util.HEADER}\nRunning ffprobe...')
 
     ffprobe_cmd = (['ffprobe',
         '-hide_banner',
@@ -102,7 +105,7 @@ def ffprobe(input, output, show_frames = False, show_streams = False, params = [
     + (['-show_streams'] if show_streams else [])
     + [input])
 
-    print_command(ffprobe_cmd)
+    print_collection(ffprobe_cmd)
     
     with open(output, 'w') as f:
         result = subprocess.run(ffprobe_cmd, stdout=f)
