@@ -35,6 +35,8 @@ RES_ALL = [
     RES_90p
 ]
 
+HEADER = '=================='
+
 def ceil_to_divisible_by(original: int, divisible_by: int) -> int:
     return (int((original - 1) / divisible_by) + 1) * divisible_by
 

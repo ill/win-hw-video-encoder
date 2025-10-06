@@ -55,7 +55,8 @@ class Experiment:
 
         self.input_bytes = os.path.getsize(self.input_video_file_name)
 
-        print (f"==================\nInput: {self.input_video_file_name}\
+        print (f"{Util.HEADER}\
+            \n\tInput: {self.input_video_file_name}\
             \n\twidth:{str(self.input_width) if self.input_width is not None else 'N/A'}\
             \n\theight:{str(self.input_height) if self.input_height is not None else 'N/A'}\
             \n\tduration_s:{str(self.input_duration_s) if self.input_duration_s is not None else 'N/A'}\
@@ -163,6 +164,7 @@ class Experiment:
     
     def get_scaled_down_all_resolutions(self) -> list[tuple[int, int]]:
         return self.get_scaled_down_to_fit_resolutions(Util.RES_ALL)
+
     class SubExperiment:
         def __init__(self, experiment,
                      sub_experiment_name: str,
