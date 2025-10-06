@@ -1,5 +1,4 @@
 import CQGoogleExperimentBase
-import ValueSweeper
 
 # Based on https://developers.google.com/media/vp9/settings/vod
 class CQGoogleExperimentBruteForceSweep(CQGoogleExperimentBase.CQGoogleExperimentBase):
@@ -45,12 +44,12 @@ class CQGoogleExperimentBruteForceSweep(CQGoogleExperimentBase.CQGoogleExperimen
         speed_pass_2_max = 5
         speed_pass_2_step = 1
 
-        for crf in range(crf_min, crf_max, crf_step):
-            for target_bitrate in range(target_bitrate_min, target_bitrate_max, target_bitrate_step):
-                for min_bitrate in range(min(min_bitrate_kbps_min, target_bitrate), min(min_bitrate_kbps_max, target_bitrate), min_bitrate_kbps_step):
-                    for max_bitrate in range(max(max_bitrate_kbps_min, target_bitrate), max(max_bitrate_kbps_max, target_bitrate), max_bitrate_kbps_step):
-                        for threads in range(threads_min, threads_max, threads_step):
-                            for tile_columns in range(tile_columns_min, tile_columns_max, tile_columns_step):
+        for crf in range(crf_min, crf_max + crf_step, crf_step):
+            for target_bitrate in range(target_bitrate_min, target_bitrate_max + target_bitrate_step, target_bitrate_step):
+                for min_bitrate in range(min(min_bitrate_kbps_min, target_bitrate), min(min_bitrate_kbps_max, target_bitrate) + min_bitrate_kbps_step, min_bitrate_kbps_step):
+                    for max_bitrate in range(max(max_bitrate_kbps_min, target_bitrate), max(max_bitrate_kbps_max, target_bitrate) + max_bitrate_kbps_step, max_bitrate_kbps_step):
+                        for threads in range(threads_min, threads_max + threads_step, threads_step):
+                            for tile_columns in range(tile_columns_min, tile_columns_max + tile_columns_step, tile_columns_step):
                                 cq_params = CQGoogleExperimentBase.CQExperiment.CQExperiment.SubExperiment.CQParams()
 
                                 cq_params.crf = crf
@@ -60,15 +59,15 @@ class CQGoogleExperimentBruteForceSweep(CQGoogleExperimentBase.CQGoogleExperimen
                                 cq_params.threads = threads
                                 cq_params.tile_columns = tile_columns
 
-                                for speed_single_pass in range(speed_single_pass_min, speed_single_pass_max, speed_single_pass_step):
+                                for speed_single_pass in range(speed_single_pass_min, speed_single_pass_max + speed_single_pass_step, speed_single_pass_step):
                                     cq_params.speed_single_pass = speed_single_pass
 
                                     self.run_experiment_on_cq_params_one_pass(resolution, cq_params = cq_params)
 
-                                for speed_pass_1 in range(speed_pass_1_min, speed_pass_1_max, speed_pass_1_step):
+                                for speed_pass_1 in range(speed_pass_1_min, speed_pass_1_max + speed_pass_1_step, speed_pass_1_step):
                                     cq_params.speed_pass1 = speed_pass_1
 
-                                    for speed_pass_2 in range(speed_pass_2_min, speed_pass_2_max, speed_pass_2_step):
+                                    for speed_pass_2 in range(speed_pass_2_min, speed_pass_2_max + speed_pass_2_step, speed_pass_2_step):
                                         cq_params.speed_pass2 = speed_pass_2
 
                                         self.run_experiment_on_cq_params_two_pass(resolution, cq_params=cq_params)

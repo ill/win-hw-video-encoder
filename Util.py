@@ -35,6 +35,8 @@ RES_ALL = [
     RES_90p
 ]
 
+GSUN = 0.07
+
 HEADER = '=================='
 
 def ceil_to_divisible_by(original: int, divisible_by: int) -> int:

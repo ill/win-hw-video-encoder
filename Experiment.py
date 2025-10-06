@@ -4,6 +4,7 @@ import csv
 import json
 import statistics
 import math
+from fractions import Fraction
 
 import Util
 
@@ -24,6 +25,7 @@ class Experiment:
 
         self.input_width = None
         self.input_height = None
+        self.input_fps = None
         self.input_duration_s = None
         self.input_bitrate = None
         self.input_bytes = None
@@ -51,6 +53,8 @@ class Experiment:
                 self.input_width = stream.get('width')
                 self.input_height = stream.get('height')
                 self.input_bitrate = stream.get('bit_rate')
+                fps_str = stream.get('r_frame_rate')
+                self.input_fps = float(Fraction(fps_str)) if '/' in fps_str else float(fps_str)
                 break
 
         self.input_bytes = os.path.getsize(self.input_video_file_name)
@@ -59,6 +63,7 @@ class Experiment:
             \n\tInput: {self.input_video_file_name}\
             \n\twidth:{str(self.input_width) if self.input_width is not None else 'N/A'}\
             \n\theight:{str(self.input_height) if self.input_height is not None else 'N/A'}\
+            \n\tfps:{str(self.input_fps) if self.input_fps is not None else 'N/A'}\
             \n\tduration_s:{str(self.input_duration_s) if self.input_duration_s is not None else 'N/A'}\
             \n\tbitrate:{f'{int(self.input_bitrate):,}' if self.input_bitrate is not None else 'N/A'}\
             \n\tsize_bytes:{f'{self.input_bytes:,}' if self.input_bytes is not None else 'N/A'}")
@@ -70,7 +75,8 @@ class Experiment:
             #'link', 
             'input',
             'width',
-            'height', 
+            'height',
+            'fps',
             'duration_s',
             'bitrate',
             'file_bytes'
@@ -82,6 +88,7 @@ class Experiment:
             self.input_video_file_name,
             str(self.input_width) if self.input_width is not None else 'N/A',
             str(self.input_height) if self.input_height is not None else 'N/A',
+            str(self.input_fps) if self.input_fps is not None else 'N/A',
             str(self.input_duration_s) if self.input_duration_s is not None else 'N/A',
             f'{int(self.input_bitrate):,}' if self.input_bitrate is not None else 'N/A',
             f'{self.input_bytes:,}' if self.input_bytes is not None else 'N/A',
@@ -209,7 +216,7 @@ class Experiment:
             return Util.ffmpeg(self.experiment.input_video_file_name,
             [
                 '-vf', f'scale={self.output_width}:{self.output_height}',
-                '-fps_mode', 'passthrough',
+                '-fps_mode', 'cfr',
 
                 # drop metadata things
                 '-dn',
