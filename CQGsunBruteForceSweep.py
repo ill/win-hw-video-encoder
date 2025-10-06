@@ -2,11 +2,11 @@ import CQExperiment
 
 class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
     def run_experiment_on_resolution(self, resolution: tuple[int, int]):
-
-
-        crf_min = max(0, cq_params_base.crf - 20)
-        crf_max = min(63, cq_params_base.crf + 20)
+        crf_min = 0
+        crf_max = 63
         crf_step = 4
+
+        
 
         target_bitrate_min = max(0, cq_params_base.target_bitrate_kbps - 100)
         target_bitrate_max = cq_params_base.target_bitrate_kbps + 100

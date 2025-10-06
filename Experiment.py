@@ -111,6 +111,7 @@ class Experiment:
         [
             'width',
             'height',
+            'fps',
             
             'vmaf_mean',
             'vmaf_harmonic_mean',
@@ -175,13 +176,15 @@ class Experiment:
     class SubExperiment:
         def __init__(self, experiment,
                      sub_experiment_name: str,
-                     output_width: int = 1920,
-                     output_height: int = 1080,
+                     output_width: int = -1,
+                     output_height: int = -1,
+                     output_fps: int = -1,
                      two_pass_encoding: bool = False):
             self.experiment = experiment
             self.sub_experiment_name = sub_experiment_name
-            self.output_width = output_width
-            self.output_height = output_height
+            self.output_width = output_width if output_width >= 0 else experiment.input_width
+            self.output_height = output_height if output_height >= 0 else experiment.input_height
+            self.output_fps = output_fps if output_fps >= 0 else experiment.input_fps
             self.two_pass_encoding = two_pass_encoding
 
             self.video_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.webm"
@@ -215,7 +218,7 @@ class Experiment:
         def ffmpeg(self, params):
             return Util.ffmpeg(self.experiment.input_video_file_name,
             [
-                '-vf', f'scale={self.output_width}:{self.output_height}',
+                '-vf', f'fps={self.output_fps},scale={self.output_width}:{self.output_height},setsar=1/1',
                 '-fps_mode', 'cfr',
 
                 # drop metadata things
@@ -328,6 +331,7 @@ class Experiment:
             [
                 str(self.output_width),
                 str(self.output_height),
+                str(self.output_fps),
                                 
                 self.vmaf_mean,
                 self.vmaf_harmonic_mean,
