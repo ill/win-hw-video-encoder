@@ -72,7 +72,7 @@ def get_target_bitrate_kbps(width, height, fps, gsun) -> int:
 
 # Runs ffmpeg and returns the time it took to run
 def ffmpeg(input, params = []) -> float:
-    print('{Util.HEADER}\nRunning ffmpeg...')
+    print(f'{HEADER}\nRunning ffmpeg...')
 
     ffmpeg_cmd = ([
         'ffmpeg',
@@ -93,7 +93,7 @@ def ffmpeg(input, params = []) -> float:
     return end - start
 
 def ffprobe(input, output, show_frames = False, show_streams = False, params = []):
-    print('{Util.HEADER}\nRunning ffprobe...')
+    print(f'{HEADER}\nRunning ffprobe...')
 
     ffprobe_cmd = (['ffprobe',
         '-hide_banner',
