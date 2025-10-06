@@ -39,6 +39,8 @@ RES_ALL = [
 
 GSUN = 0.07
 
+CRF_MAX = 63
+
 VP9_TILE_DIM = 256
 
 HEADER = '=================='

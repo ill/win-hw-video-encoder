@@ -227,6 +227,7 @@ class Experiment:
                 '-map_metadata', '-1',
                 '-map_chapters', '-1',
 
+                '-row-mt', '1',
                 '-c:v', 'libvpx-vp9',
             ] + params)
 

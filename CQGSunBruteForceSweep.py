@@ -15,9 +15,9 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         ] + super().get_extra_csv_header_columns()
 
     def run_experiment_on_resolution(self, resolution: tuple[int, int]):
-        crf_min = 0
-        crf_max = 63
-        crf_step = 4
+        crf_min = 28
+        crf_max = 36
+        crf_step = 1
 
         gsuns = [1.0, 1.25, 1.5, 1.75]
 
@@ -25,33 +25,33 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         # This is a set so if original bitrate is 30 we're good on a single set element
         framerates = {30, self.input_fps}
 
-        min_bitrate_pct_min = 100
+        min_bitrate_pct_min = 50
         min_bitrate_pct_max = 50
         min_bitrate_pct_step = -10
 
         max_bitrate_pct_min = 150
-        max_bitrate_pct_max = 100
+        max_bitrate_pct_max = 150
         max_bitrate_pct_step = -10
 
-        threads_min = 4
-        threads_max = 1
-        threads_step = -1
+        threads_min = 8
+        threads_max = 4
+        threads_step = -4
 
         tile_columns_base = math.floor(math.log2(resolution[0] / Util.VP9_TILE_DIM)) if resolution[0] > Util.VP9_TILE_DIM else 0
         tile_columns_min = tile_columns_base
-        tile_columns_max = 0
+        tile_columns_max = tile_columns_base
         tile_columns_step = -1
 
         speed_single_pass_min = 0
-        speed_single_pass_max = 5
+        speed_single_pass_max = 0
         speed_single_pass_step = 1
 
         speed_pass_1_min = 0
-        speed_pass_1_max = 5
+        speed_pass_1_max = 0
         speed_pass_1_step = 1
 
         speed_pass_2_min = 0
-        speed_pass_2_max = 5
+        speed_pass_2_max = 0
         speed_pass_2_step = 1
 
         print(f'{Util.HEADER}\nSweeping Values Between')
