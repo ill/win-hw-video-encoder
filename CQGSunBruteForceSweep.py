@@ -57,6 +57,8 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         print(f'\tframerates:', end = ' ')
         Util.print_collection(framerates)
         print(f'\ttarget_bitrates: {Util.get_target_bitrate_kbps(resolution[0], resolution[1], min(framerates), gsuns[0])} - {Util.get_target_bitrate_kbps(resolution[0], resolution[1], max(framerates), gsuns[len(gsuns) - 1])}')
+        print(f'\tthreads: {threads_min} - {threads_max} step: {threads_step}')
+        print(f'\ttile_columns: {tile_columns_min} - {tile_columns_max} step: {tile_columns_step}')
 
         for crf in range(crf_min,
                          crf_max + 1,
@@ -162,7 +164,8 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
                                             cq_params=cq_params,
                                             output_width=resolution[0],
                                             output_height=resolution[1],
-                                            output_fps=fps).run_sub_experiment()
+                                            output_fps=fps,
+                                            two_pass_encoding=True).run_sub_experiment()
 
     def run_experiment(self):
         super().run_experiment()
