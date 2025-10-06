@@ -14,7 +14,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
 
         # Try the original bitrate and 30 fps
         # This is a set so if original bitrate is 30 we're good on a single set element
-        framerates = {30, self.input_bitrate}
+        framerates = {30, self.input_fps}
 
         min_bitrate_target_ratio_min = 0
         min_bitrate_target_ratio_max = 100
@@ -47,7 +47,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         for crf in range(crf_min, crf_max + crf_step, crf_step):
             for fps in framerates:
                 for gsun in gsuns:
-                    target_bitrate = int(resolution[0] * resolution[1] * float(fps) * gsun * Util.GSUN)
+                    target_bitrate = int(resolution[0] * resolution[1] * float(fps) * gsun * Util.GSUN / 1000)
 
                     for min_bitrate_target_ratio in range(min_bitrate_target_ratio_min, min_bitrate_target_ratio_max, min_bitrate_target_ratio_step):
                         for max_bitrate_target_ratio in range(max_bitrate_target_ratio_min, max_bitrate_target_ratio_max, max_bitrate_target_ratio_step):
@@ -57,9 +57,9 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
                                     cq_params = CQExperiment.CQExperiment.SubExperiment.CQParams()
 
                                     cq_params.crf = crf
-                                    cq_params.target_bitrate = target_bitrate
-                                    cq_params.min_bitrate = target_bitrate * min_bitrate_target_ratio
-                                    cq_params.max_bitrate = target_bitrate * max_bitrate_target_ratio
+                                    cq_params.target_bitrate_kbps = target_bitrate
+                                    cq_params.min_bitrate_kbps = int(target_bitrate * min_bitrate_target_ratio)
+                                    cq_params.min_bitrate_kbps = int(target_bitrate * max_bitrate_target_ratio)
                                     cq_params.threads = threads
                                     cq_params.tile_columns = tile_columns
 
@@ -68,7 +68,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
                                                                    speed_single_pass_step):
                                         cq_params.speed_single_pass = speed_single_pass
 
-                                        self.run_experiment_on_cq_params_one_pass(resolution, cq_params=cq_params)
+                                        self.run_experiment_on_cq_params_one_pass(resolution, fps, cq_params=cq_params)
 
                                     for speed_pass_1 in range(speed_pass_1_min, speed_pass_1_max + speed_pass_1_step,
                                                               speed_pass_1_step):
@@ -78,9 +78,9 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
                                                                   speed_pass_2_step):
                                             cq_params.speed_pass2 = speed_pass_2
 
-                                            self.run_experiment_on_cq_params_two_pass(resolution, cq_params=cq_params)
+                                            self.run_experiment_on_cq_params_two_pass(resolution, fps, cq_params=cq_params)
 
-    def run_experiment_on_cq_params_one_pass(self, resolution: tuple[int, int], cq_params: CQExperiment.CQExperiment.SubExperiment.CQParams):
+    def run_experiment_on_cq_params_one_pass(self, resolution: tuple[int, int], fps : int, cq_params: CQExperiment.CQExperiment.SubExperiment.CQParams):
         print(f'==================\nRunning Resolution One Pass: {resolution}'
               f'{str(cq_params)}')
 
@@ -88,9 +88,10 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         CQExperiment.CQExperiment.SubExperiment(self,
                                                 cq_params=cq_params,
                                                 output_width=resolution[0],
-                                                output_height=resolution[1]).run_sub_experiment()
+                                                output_height=resolution[1],
+                                                output_fps=fps).run_sub_experiment()
 
-    def run_experiment_on_cq_params_two_pass(self, resolution: tuple[int, int], cq_params: CQExperiment.CQExperiment.SubExperiment.CQParams):
+    def run_experiment_on_cq_params_two_pass(self, resolution: tuple[int, int], fps : int, cq_params: CQExperiment.CQExperiment.SubExperiment.CQParams):
         print(f'==================\nRunning Resolution Two Pass: {resolution}'
               f'{str(cq_params)}')
 
@@ -99,6 +100,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
                                                 cq_params=cq_params,
                                                 output_width=resolution[0],
                                                 output_height=resolution[1],
+                                                output_fps=fps,
                                                 two_pass_encoding=True).run_sub_experiment()
 
     def run_experiment(self):

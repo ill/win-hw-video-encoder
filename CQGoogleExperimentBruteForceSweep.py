@@ -53,9 +53,9 @@ class CQGoogleExperimentBruteForceSweep(CQGoogleExperimentBase.CQGoogleExperimen
                                 cq_params = CQGoogleExperimentBase.CQExperiment.CQExperiment.SubExperiment.CQParams()
 
                                 cq_params.crf = crf
-                                cq_params.target_bitrate = target_bitrate
-                                cq_params.min_bitrate = min_bitrate
-                                cq_params.max_bitrate = max_bitrate
+                                cq_params.target_bitrate_kbps = target_bitrate
+                                cq_params.min_bitrate_kbps = min_bitrate
+                                cq_params.max_bitrate_kbps = max_bitrate
                                 cq_params.threads = threads
                                 cq_params.tile_columns = tile_columns
 
