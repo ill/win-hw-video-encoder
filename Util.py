@@ -45,11 +45,16 @@ VP9_TILE_DIM = 256
 
 HEADER = '=================='
 
-def ceil_to_divisible_by(original: int, divisible_by: int) -> int:
-    return (int((original - 1) / divisible_by) + 1) * divisible_by
-
 def sign(number):
     return (number > 0) - (number < 0)
+
+def inclusive_range(start, end, step = 1):
+    return range(start,
+          end + sign(step),
+          step)
+
+def ceil_to_divisible_by(original: int, divisible_by: int) -> int:
+    return (int((original - 1) / divisible_by) + 1) * divisible_by
 
 def maybe_scale_down_to_fit(current_long_side: int, current_short_side: int, max_long_side: int, max_short_side: int, transposed: bool) -> tuple[int, int]:
     long_side: int = 0

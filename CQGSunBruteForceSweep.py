@@ -15,101 +15,81 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         ] + super().get_extra_csv_header_columns()
 
     def run_experiment_on_resolution(self, resolution: tuple[int, int]):
-        crf_min = 28
-        crf_max = 36
+        crf_from = 29
+        crf_to = 36
         crf_step = 1
 
         gsuns = [1.0, 1.25, 1.5, 1.75]
 
         # Try the original bitrate and 30 fps
         # This is a set so if original bitrate is 30 we're good on a single set element
-        framerates = {30, self.input_fps}
+        framerates = {30}#{30, self.input_fps}
 
-        min_bitrate_pct_min = 50
-        min_bitrate_pct_max = 50
+        min_bitrate_pct_from = 50
+        min_bitrate_pct_to = 50
         min_bitrate_pct_step = -10
 
-        max_bitrate_pct_min = 150
-        max_bitrate_pct_max = 150
+        max_bitrate_pct_from = 150
+        max_bitrate_pct_to = 150
         max_bitrate_pct_step = -10
 
-        threads_min = 8
-        threads_max = 4
+        threads_from = 16
+        threads_to = 16
         threads_step = -4
 
         tile_columns_base = math.floor(math.log2(resolution[0] / Util.VP9_TILE_DIM)) if resolution[0] > Util.VP9_TILE_DIM else 0
-        tile_columns_min = tile_columns_base
-        tile_columns_max = tile_columns_base
+        tile_columns_from = tile_columns_base
+        tile_columns_to = tile_columns_base
         tile_columns_step = -1
 
-        speed_single_pass_min = 0
-        speed_single_pass_max = 0
+        speed_single_pass_from = 0
+        speed_single_pass_to = 0
         speed_single_pass_step = 1
 
-        speed_pass_1_min = 0
-        speed_pass_1_max = 0
+        speed_pass_1_from = 0
+        speed_pass_1_to = 0
         speed_pass_1_step = 1
 
-        speed_pass_2_min = 0
-        speed_pass_2_max = 0
+        speed_pass_2_from = 0
+        speed_pass_2_to = 0
         speed_pass_2_step = 1
 
+        one_pass_encoding = True
+        two_pass_encoding = True
+
         print(f'{Util.HEADER}\nSweeping Values Between')
-        print(f'\tcrf: {crf_min} - {crf_max} step: {crf_step}')
+        print(f'\tcrf: {crf_from} - {crf_to} step: {crf_step}')
         print(f'\tgsuns: {min(gsuns)} - {max(gsuns)}')
         print(f'\tframerates:', end = ' ')
         Util.print_collection(framerates)
         print(f'\ttarget_bitrates: {Util.get_target_bitrate_kbps(resolution[0], resolution[1], min(framerates), min(gsuns))} - {Util.get_target_bitrate_kbps(resolution[0], resolution[1], max(framerates), max(gsuns))}')
-        print(f'\tthreads: {threads_min} - {threads_max} step: {threads_step}')
-        print(f'\ttile_columns: {tile_columns_min} - {tile_columns_max} step: {tile_columns_step}')
+        print(f'\tthreads: {threads_from} - {threads_to} step: {threads_step}')
+        print(f'\ttile_columns: {tile_columns_from} - {tile_columns_to} step: {tile_columns_step}')
 
-        for crf in range(crf_min,
-                         crf_max + Util.sign(crf_step),
-                         crf_step):
+        for crf in Util.inclusive_range(crf_from,
+                                        crf_to,
+                                        crf_step):
             for fps in framerates:
                 for gsun in gsuns:
                     target_bitrate = Util.get_target_bitrate_kbps(resolution[0], resolution[1], fps, gsun)
 
-                    for min_bitrate_pct in range(min_bitrate_pct_min,
-                                                 min_bitrate_pct_max + Util.sign(min_bitrate_pct_step),
-                                                 min_bitrate_pct_step):
-                        for max_bitrate_pct in range(max_bitrate_pct_min,
-                                                     max_bitrate_pct_max + Util.sign(max_bitrate_pct_step),
-                                                     max_bitrate_pct_step):
-                            for threads in range(threads_min,
-                                                 threads_max + Util.sign(threads_step),
-                                                 threads_step):
-                                for tile_columns in range(tile_columns_min,
-                                                          tile_columns_max + Util.sign(tile_columns_step),
-                                                          tile_columns_step):
+                    for min_bitrate_pct in Util.inclusive_range(min_bitrate_pct_from,
+                                                                min_bitrate_pct_to,
+                                                                min_bitrate_pct_step):
+                        for max_bitrate_pct in Util.inclusive_range(max_bitrate_pct_from,
+                                                                    max_bitrate_pct_to,
+                                                                    max_bitrate_pct_step):
+                            for threads in Util.inclusive_range(threads_from,
+                                                                threads_to,
+                                                                threads_step):
+                                for tile_columns in Util.inclusive_range(tile_columns_from,
+                                                                         tile_columns_to,
+                                                                         tile_columns_step):
 
-                                    for speed_single_pass in range(speed_single_pass_min,
-                                                                   speed_single_pass_max + Util.sign(speed_single_pass_step),
-                                                                   speed_single_pass_step):
-                                        cq_params = CQExperiment.CQExperiment.SubExperiment.CQParams()
-
-                                        cq_params.crf = crf
-                                        cq_params.target_bitrate_kbps = target_bitrate
-                                        cq_params.min_bitrate_kbps = int(target_bitrate * (min_bitrate_pct / 100))
-                                        cq_params.max_bitrate_kbps = int(target_bitrate * (max_bitrate_pct / 100))
-                                        cq_params.threads = threads
-                                        cq_params.tile_columns = tile_columns
-
-                                        cq_params.speed_single_pass = speed_single_pass
-
-                                        self.run_experiment_on_cq_params_one_pass(gsun=gsun,
-                                                                                  min_bitrate_pct=min_bitrate_pct,
-                                                                                  max_bitrate_pct=max_bitrate_pct,
-                                                                                  resolution=resolution,
-                                                                                  fps=fps,
-                                                                                  cq_params=cq_params)
-
-                                    for speed_pass_1 in range(speed_pass_1_min,
-                                                              speed_pass_1_max + Util.sign(speed_pass_1_step),
-                                                              speed_pass_1_step):
-                                        for speed_pass_2 in range(speed_pass_2_min,
-                                                                  speed_pass_2_max + Util.sign(speed_pass_2_step),
-                                                                  speed_pass_2_step):
+                                    if one_pass_encoding:
+                                        for speed_single_pass in Util.inclusive_range(speed_single_pass_from,
+                                                                                      speed_single_pass_to,
+                                                                                      speed_single_pass_step):
                                             cq_params = CQExperiment.CQExperiment.SubExperiment.CQParams()
 
                                             cq_params.crf = crf
@@ -119,15 +99,40 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
                                             cq_params.threads = threads
                                             cq_params.tile_columns = tile_columns
 
-                                            cq_params.speed_pass1 = speed_pass_1
-                                            cq_params.speed_pass2 = speed_pass_2
+                                            cq_params.speed_single_pass = speed_single_pass
 
-                                            self.run_experiment_on_cq_params_two_pass(gsun=gsun,
+                                            self.run_experiment_on_cq_params_one_pass(gsun=gsun,
                                                                                       min_bitrate_pct=min_bitrate_pct,
                                                                                       max_bitrate_pct=max_bitrate_pct,
                                                                                       resolution=resolution,
                                                                                       fps=fps,
                                                                                       cq_params=cq_params)
+
+                                    if two_pass_encoding:
+                                        for speed_pass_1 in Util.inclusive_range(speed_pass_1_from,
+                                                                                 speed_pass_1_to,
+                                                                                 speed_pass_1_step):
+                                            for speed_pass_2 in Util.inclusive_range(speed_pass_2_from,
+                                                                                     speed_pass_2_to,
+                                                                                     speed_pass_2_step):
+                                                cq_params = CQExperiment.CQExperiment.SubExperiment.CQParams()
+
+                                                cq_params.crf = crf
+                                                cq_params.target_bitrate_kbps = target_bitrate
+                                                cq_params.min_bitrate_kbps = int(target_bitrate * (min_bitrate_pct / 100))
+                                                cq_params.max_bitrate_kbps = int(target_bitrate * (max_bitrate_pct / 100))
+                                                cq_params.threads = threads
+                                                cq_params.tile_columns = tile_columns
+
+                                                cq_params.speed_pass1 = speed_pass_1
+                                                cq_params.speed_pass2 = speed_pass_2
+
+                                                self.run_experiment_on_cq_params_two_pass(gsun=gsun,
+                                                                                          min_bitrate_pct=min_bitrate_pct,
+                                                                                          max_bitrate_pct=max_bitrate_pct,
+                                                                                          resolution=resolution,
+                                                                                          fps=fps,
+                                                                                          cq_params=cq_params)
 
     def run_experiment_on_cq_params_one_pass(self,
                                              gsun: float,
