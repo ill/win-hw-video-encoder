@@ -286,10 +286,21 @@ class Experiment:
         def vmaf(self):
             print(f'{Util.HEADER}\nRunning vmaf...')
 
+            # If downscaling choose area filter
+            # If upscaling choose lanczos filter
+
+            reference_filter = 'area' if self.experiment.input_width > 1920 else 'lanczos'
+            distorted_filter = 'area' if self.output_width > 1920 else 'lanczos'
+
             Util.ffmpeg(self.experiment.input_video_file_name,
             [
                 '-i', self.video_filename,
-                '-lavfi', f"[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags=bicubic[reference];[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags=bicubic[distorted];[distorted][reference]libvmaf=log_fmt=json:log_path={self.vmaf_filename}:n_threads=4",
+                '-lavfi',
+
+                f"[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}[reference];"
+                f"[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}[distorted];"
+                f"[distorted][reference]libvmaf=log_fmt=json:log_path={self.vmaf_filename}:n_threads=4",
+
                 '-f', 'null',
                 '-'
             ])
