@@ -292,12 +292,9 @@ class Experiment:
             reference_filter = 'area' if self.experiment.input_width > 1920 else 'lanczos'
             distorted_filter = 'area' if self.output_width > 1920 else 'lanczos'
 
-            reference_stream_name = 'reference'
-            distorted_stream_name = 'distorted'
-
             # This forces the timestamps to align, fps to align to 30, scale resolution to 1920x1080 for the default VMAF model, and add letterboxing with preserved aspect ratio
-            stream_str = f'[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,format=yuv420p[{reference_stream_name}];'\
-                         f'[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,format=yuv420p[{distorted_stream_name}];'
+            stream_str = f'[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,format=yuv420p[reference];'\
+                         f'[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,format=yuv420p[distorted];'
 
             output_vmaf_preview = True
 
@@ -313,14 +310,14 @@ class Experiment:
                     f"[reference]split=3[r_vmaf][r_side_by_side][r_diff];"
                     f"[distorted]split=3[d_vmaf][d_side_by_side][d_diff];"
                     
-                    f"[d_vmaf][r_vmaf]libvmaf=log_path={self.vmaf_filename}:log_fmt=json[vmaf];"
+                    f"[d_vmaf][r_vmaf]libvmaf=log_path={self.vmaf_filename}:log_fmt=json[vmaf];[vmaf]nullsink;"
                     
-                    f"[d_side_by_side][r_side_by_side]hstack=inputs=2,drawbox=x=w/2-1:y=0:w=2:h=h:c=white@0.6:t=fill[side_by_side];"
+                    f"[d_side_by_side][r_side_by_side]hstack=inputs=2,format=yuv420p,drawbox=x=(iw-2)/2:y=0:w=2:h=ih:color=white@0.6:t=fill[side_by_side];"
                     
-                    f"[d_diff][r_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1[diff]"
+                    f"[d_diff][r_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1[diff]",
                     
-                    '-map', ''"[side_by_side]"'', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.side_by_side.mp4',
-                    '-map', ''"[diff]"'', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.diff.mp4',
+                    '-map', ''"[side_by_side]"'', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.side_by_side.mp4', '-y',
+                    '-map', ''"[diff]"'', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.diff.mp4', '-y',
 
                     '-f', 'null',
                     '-'
