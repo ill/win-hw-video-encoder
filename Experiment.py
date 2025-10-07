@@ -297,8 +297,9 @@ class Experiment:
                 '-i', self.video_filename,
                 '-lavfi',
 
-                f"[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}[reference];"
-                f"[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}[distorted];"
+                # This forces the timestamps to align, fps to align to 30, scale resolution to 1920x1080 for the default VMAF model, and add letterboxing with preserved aspect ratio
+                f"[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2[reference];"
+                f"[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2[distorted];"
                 f"[distorted][reference]libvmaf=log_fmt=json:log_path={self.vmaf_filename}:n_threads=4",
 
                 '-f', 'null',
