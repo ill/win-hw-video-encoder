@@ -292,9 +292,14 @@ class Experiment:
             reference_filter = 'area' if self.experiment.input_width > 1920 else 'lanczos'
             distorted_filter = 'area' if self.output_width > 1920 else 'lanczos'
 
-            # This forces the timestamps to align, fps to align to 30, scale resolution to 1920x1080 for the default VMAF model, and add letterboxing with preserved aspect ratio
-            stream_str = f'[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,format=yuv420p[reference];'\
-                         f'[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,format=yuv420p[distorted];'
+            aspect_fit_params = 'decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2'
+            aspect_fill_params = 'increase,crop=1920:1080'
+
+            aspect_fill = True
+
+            # This forces the timestamps to align, fps to align to 30, scale resolution to 1920x1080 for the default VMAF model, and either aspect fit or aspect fill
+            stream_str = f'[1:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}:force_original_aspect_ratio={aspect_fill_params if aspect_fill else aspect_fit_params},format=yuv420p[reference];'\
+                         f'[0:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}:force_original_aspect_ratio={aspect_fill_params if aspect_fill else aspect_fit_params},format=yuv420p[distorted];'
 
             output_vmaf_preview = True
 
