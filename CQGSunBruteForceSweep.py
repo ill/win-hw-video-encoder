@@ -19,7 +19,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         crf_to = 36
         crf_step = 1
 
-        gsuns = [1.0, 1.25, 1.5, 1.75]
+        gsuns = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
 
         # Try the original bitrate and 30 fps
         # This is a set so if original bitrate is 30 we're good on a single set element

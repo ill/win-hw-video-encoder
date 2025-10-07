@@ -38,8 +38,8 @@ def main():
     #CQGoogleExperimentBruteForceSweep.CQGoogleExperimentBruteForceSweep('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
 
     #CQGSunBruteForceSweep.CQGSunBruteForceSweep('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
-    #CQGSunBruteForceSweep.CQGSunBruteForceSweep('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
-    CQGSunBruteForceSweep.CQGSunBruteForceSweep('sonichd.mp4', 'sonichd').run_experiment()
+    CQGSunBruteForceSweep.CQGSunBruteForceSweep('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    #CQGSunBruteForceSweep.CQGSunBruteForceSweep('sonichd.mp4', 'sonichd').run_experiment()
 
     print('Done.')
 
