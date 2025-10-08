@@ -301,8 +301,8 @@ class Experiment:
             aspect_ratio_params = f':force_original_aspect_ratio={aspect_fill_params if aspect_fill else aspect_fit_params}' if force_aspect_ratio else ''
 
             # This forces the timestamps to align, fps to align to 30, scale resolution to 1920x1080 for the default VMAF model, and either aspect fit or aspect fill
-            stream_str = f'[1:v]setsar=1,settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}{aspect_ratio_params}[reference];'\
-                         f'[0:v]setsar=1,settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}{aspect_ratio_params}[distorted];'
+            stream_str = f'[1:v]setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}{aspect_ratio_params}[reference];'\
+                         f'[0:v]setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}{aspect_ratio_params}[distorted];'
 
             output_vmaf_preview = True
 
@@ -315,14 +315,14 @@ class Experiment:
                     '-filter_complex',
                     f"{stream_str}"
                     
-                    f"[reference]split=3[r_vmaf][r_side_by_side][r_diff];"
-                    f"[distorted]split=3[d_vmaf][d_side_by_side][d_diff];"
+                    f"[reference]showinfo@REFERENCE,split=3[r_vmaf][r_side_by_side][r_diff];"
+                    f"[distorted]showinfo@DISTORTED,split=3[d_vmaf][d_side_by_side][d_diff];"
                     
                     f"[d_vmaf][r_vmaf]libvmaf=log_path={self.vmaf_filename}:log_fmt=json[vmaf];[vmaf]nullsink;"
                     
-                    f"[d_side_by_side][r_side_by_side]hstack=inputs=2,format=yuv420p,drawbox=x=(iw-2)/2:y=0:w=2:h=ih:color=white@0.6:t=fill[side_by_side];"
+                    f"[d_side_by_side][r_side_by_side]hstack=inputs=2,format=yuv420p,drawbox=x=(iw-2)/2:y=0:w=2:h=ih:color=white@0.6:t=fill,settb=AVTB,setpts=N/FRAME_RATE/TB[side_by_side];"
                     
-                    f"[d_diff][r_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1[diff]",
+                    f"[d_diff][r_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1,settb=AVTB,setpts=N/FRAME_RATE/TB[diff]",
                     
                     '-map', ''"[side_by_side]"'', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.side_by_side.mp4', '-y',
                     '-map', ''"[diff]"'', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.diff.mp4', '-y',
