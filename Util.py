@@ -44,7 +44,7 @@ CRF_MAX = 63
 VP9_TILE_DIM = 256
 
 # Change this to point to a specific directory of ffmpeg if you have a custom version
-FFMPEG_ROOT = ''
+FFMPEG_ROOT = ''#'/Users/iseletsky/git/ffmpeg/'
 
 HEADER = '=================='
 
