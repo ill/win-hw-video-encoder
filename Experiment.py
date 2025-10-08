@@ -184,7 +184,7 @@ class Experiment:
             self.sub_experiment_name = sub_experiment_name
             self.output_width = output_width if output_width >= 0 else experiment.input_width
             self.output_height = output_height if output_height >= 0 else experiment.input_height
-            self.output_fps = output_fps if output_fps >= 0 else experiment.input_fps
+            self.output_fps = output_fps
             self.two_pass_encoding = two_pass_encoding
 
             self.video_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.webm"
@@ -206,8 +206,8 @@ class Experiment:
 
         def run_sub_experiment(self):
             print(f'{Util.HEADER}\nRunning: {self.get_sub_experiment_name()}')
-            #self.transcode()
-            #self.ffprobe()
+            self.transcode()
+            self.ffprobe()
             self.vmaf()
             self.process_results()
             self.write_csv_row()
@@ -218,8 +218,8 @@ class Experiment:
         def ffmpeg(self, params):
             return Util.ffmpeg(self.experiment.input_video_file_name,
             [
-                '-vf', f'fps={self.output_fps},scale={self.output_width}:{self.output_height},setsar=1/1',
-                '-fps_mode', 'cfr',
+                '-vf', f'{f"fps={self.output_fps}," if self.output_fps >= 0 else ""}scale={self.output_width}:{self.output_height},setsar=1/1',
+                '-fps_mode', 'cfr' if self.output_fps >= 0 else 'passthrough',
 
                 # drop metadata things
                 '-dn',
