@@ -301,7 +301,7 @@ class Experiment:
             aspect_ratio_params = f':force_original_aspect_ratio={aspect_fill_params if aspect_fill else aspect_fit_params}' if force_aspect_ratio else ''
 
             stream_options = 'setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,fps=30:round=down:start_time=0,scale=1920:1080:flags='
-            stream_post_options = ',setsar=1/1,mpdecimate=hi=768:lo=320:frac=0.33,settb=1/30,setpts=N/TB'
+            stream_post_options = ',setsar=1/1,mpdecimate=hi=768:lo=320:frac=0.33,setpts=round(T*30)/30/TB,fps=30:round=near:start_time=0,settb=1/30,setpts=N/TB'
 
             # This forces the timestamps to align, fps to align to 30, scale resolution to 1920x1080 for the default VMAF model, and either aspect fit or aspect fill
             stream_str = f'[0:v]{stream_options}{reference_filter}{aspect_ratio_params}{stream_post_options}[reference];'\
