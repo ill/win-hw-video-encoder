@@ -43,6 +43,9 @@ CRF_MAX = 63
 
 VP9_TILE_DIM = 256
 
+# Change this to point to a specific directory of ffmpeg if you have a custom version
+FFMPEG_ROOT = ''
+
 HEADER = '=================='
 
 def sign(number):
@@ -89,7 +92,7 @@ def ffmpeg(input, params = []) -> float:
     print(f'{HEADER}\nRunning ffmpeg...')
 
     ffmpeg_cmd = ([
-        'ffmpeg',
+        f'{FFMPEG_ROOT}ffmpeg',
         '-hide_banner',
         '-i', input,
     ]
@@ -109,7 +112,8 @@ def ffmpeg(input, params = []) -> float:
 def ffprobe(input, output, show_frames = False, show_streams = False, params = []):
     print(f'{HEADER}\nRunning ffprobe...')
 
-    ffprobe_cmd = (['ffprobe',
+    ffprobe_cmd = ([
+        f'{FFMPEG_ROOT}ffprobe',
         '-hide_banner',
         '-print_format', 
         'json',

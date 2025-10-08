@@ -206,8 +206,8 @@ class Experiment:
 
         def run_sub_experiment(self):
             print(f'{Util.HEADER}\nRunning: {self.get_sub_experiment_name()}')
-            self.transcode()
-            self.ffprobe()
+            #self.transcode()
+            #self.ffprobe()
             self.vmaf()
             self.process_results()
             self.write_csv_row()
@@ -300,9 +300,12 @@ class Experiment:
 
             aspect_ratio_params = f':force_original_aspect_ratio={aspect_fill_params if aspect_fill else aspect_fit_params}' if force_aspect_ratio else ''
 
+            stream_options = 'setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,fps=30:round=down:start_time=0,scale=1920:1080:flags='
+            stream_post_options = ',setsar=1/1,mpdecimate=hi=768:lo=320:frac=0.33,settb=1/30,setpts=N/TB'
+
             # This forces the timestamps to align, fps to align to 30, scale resolution to 1920x1080 for the default VMAF model, and either aspect fit or aspect fill
-            stream_str = f'[0:v]setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}{aspect_ratio_params},setsar=1/1,settb=AVTB,setpts=N/FRAME_RATE/TB,fps=30[reference];'\
-                         f'[1:v]setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}{aspect_ratio_params},setsar=1/1,settb=AVTB,setpts=N/FRAME_RATE/TB,fps=30[distorted];'
+            stream_str = f'[0:v]{stream_options}{reference_filter}{aspect_ratio_params}{stream_post_options}[reference];'\
+                         f'[1:v]{stream_options}{distorted_filter}{aspect_ratio_params}{stream_post_options}[distorted];'
 
             debug_vmaf = True
 
