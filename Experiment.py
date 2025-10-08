@@ -206,8 +206,8 @@ class Experiment:
 
         def run_sub_experiment(self):
             print(f'{Util.HEADER}\nRunning: {self.get_sub_experiment_name()}')
-            self.transcode()
-            self.ffprobe()
+            #self.transcode()
+            #self.ffprobe()
             self.vmaf()
             self.process_results()
             self.write_csv_row()
@@ -301,12 +301,14 @@ class Experiment:
             aspect_ratio_params = f':force_original_aspect_ratio={aspect_fill_params if aspect_fill else aspect_fit_params}' if force_aspect_ratio else ''
 
             # This forces the timestamps to align, fps to align to 30, scale resolution to 1920x1080 for the default VMAF model, and either aspect fit or aspect fill
-            stream_str = f'[1:v]setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}{aspect_ratio_params},setsar=1/1,settb=AVTB,setpts=N/FRAME_RATE/TB[reference];'\
-                         f'[0:v]setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}{aspect_ratio_params},setsar=1/1,settb=AVTB,setpts=N/FRAME_RATE/TB[distorted];'
+            stream_str = f'[0:v]setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={reference_filter}{aspect_ratio_params},setsar=1/1,settb=AVTB,setpts=N/FRAME_RATE/TB,fps=30[reference];'\
+                         f'[1:v]setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,fps=30,scale=1920:1080:flags={distorted_filter}{aspect_ratio_params},setsar=1/1,settb=AVTB,setpts=N/FRAME_RATE/TB,fps=30[distorted];'
 
             debug_vmaf = True
 
             if debug_vmaf:
+                verbose_info = False
+
                 # outputs a video of side by side comparison and diff comparison
                 Util.ffmpeg(self.experiment.input_video_file_name,
                 [
@@ -317,17 +319,25 @@ class Experiment:
                     
                     # debug print info about each frame, if things don't match this could be a problem
                     # also split into 3 streams for the 3 outputs below
-                    f"[reference]showinfo@REFERENCE,split=3[r_vmaf][r_side_by_side][r_diff];"
-                    f"[distorted]showinfo@DISTORTED,split=3[d_vmaf][d_side_by_side][d_diff];"
+                    f"[reference]{'showinfo@REFERENCE,' if verbose_info else ''}split=3[r_vmaf][r_side_by_side][r_diff];"
+                    f"[distorted]{'showinfo@DISTORTED,' if verbose_info else ''}split=3[d_vmaf][d_side_by_side][d_diff];"
                     
                     # run vmaf
                     f"[d_vmaf][r_vmaf]libvmaf=log_path={self.vmaf_filename}:log_fmt=json[vmaf];"
                     
                     # output side by side video
-                    f"[d_side_by_side][r_side_by_side]hstack=inputs=2,format=yuv420p,drawbox=x=(iw-2)/2:y=0:w=2:h=ih:color=white@0.6:t=fill,settb=AVTB,setpts=N/FRAME_RATE/TB[side_by_side];"
+                    # first burn frame info into each video
+                    "[r_side_by_side]drawtext=text='REFERENCE':x=20:y=40:fontsize=44:fontcolor=white@0.95:box=1:boxcolor=0x000000@0.5:borderw=2,"
+                    "drawtext=text='n=%{n}  pts=%{pts}  t=%{pts\\:hms}':x=20:y=96:fontsize=40:fontcolor=white@0.95:box=1:boxcolor=0x000000@0.5:borderw=2[r_side_by_side_annotated];"
+                    
+                    "[d_side_by_side]drawtext=text='DISTORTED':x=20:y=40:fontsize=44:fontcolor=white@0.95:box=1:boxcolor=0x000000@0.5:borderw=2,"
+                    "drawtext=text='n=%{n}  pts=%{pts}  t=%{pts\\:hms}':x=20:y=96:fontsize=40:fontcolor=white@0.95:box=1:boxcolor=0x000000@0.5:borderw=2[d_side_by_side_annotated];"
+                    
+                    # now stack them side by side
+                    f"[r_side_by_side_annotated][d_side_by_side_annotated]hstack=inputs=2,format=yuv420p,drawbox=x=(iw-2)/2:y=0:w=2:h=ih:color=white@0.6:t=fill,settb=AVTB,setpts=N/FRAME_RATE/TB[side_by_side];"
                     
                     # output diff video, this should show as few diffs as possible
-                    f"[d_diff][r_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1,settb=AVTB,setpts=N/FRAME_RATE/TB[diff]",
+                    f"[r_diff][d_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1,settb=AVTB,setpts=N/FRAME_RATE/TB[diff]",
                     
                     '-map', '[side_by_side]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.side_by_side.mp4', '-y',
                     '-map', '[diff]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.diff.mp4', '-y',
