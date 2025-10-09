@@ -15,11 +15,11 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         ] + super().get_extra_csv_header_columns()
 
     def run_experiment_on_resolution(self, resolution: tuple[int, int]):
-        crf_from = 29
-        crf_to = 36
+        crf_from = 0
+        crf_to = 0
         crf_step = 1
 
-        gsuns = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
+        gsuns = [1.0]#[0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
 
         # Try the original bitrate and 30 fps
         # This is a set so if original bitrate is 30 we're good on a single set element
@@ -37,7 +37,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         threads_to = 16
         threads_step = -4
 
-        tile_columns_base = math.floor(math.log2(resolution[0] / Util.VP9_TILE_DIM)) if resolution[0] > Util.VP9_TILE_DIM else 0
+        tile_columns_base = Util.get_tile_columns(resolution[0])
         tile_columns_from = tile_columns_base
         tile_columns_to = tile_columns_base
         tile_columns_step = -1

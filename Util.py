@@ -1,6 +1,8 @@
 import sys
 import time
 import subprocess
+import math
+import csv
 
 RES_1080p = (1920, 1080)
 RES_720p = (1280, 720)
@@ -84,8 +86,22 @@ def print_collection(collection):
         print (arg, end = ' ')
     print('\n')
 
+def get_column_from_csv_row(filename: str, match_value: str, match_column: str, return_column: str) -> str | None:
+    """
+    Find the row where match_column == match_value and return the value from return_column.
+    """
+    with open(filename, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row[match_column] == match_value:
+                return row[return_column]
+    return None
+
 def get_target_bitrate_kbps(width, height, fps, gsun) -> int:
     return int(width * height * fps * gsun * GSUN / 1000)
+
+def get_tile_columns(width) -> int:
+    return math.floor(math.log2(width / VP9_TILE_DIM)) if width > VP9_TILE_DIM else 0
 
 # Runs ffmpeg and returns the time it took to run
 def ffmpeg(input, params = []) -> float:

@@ -5,6 +5,7 @@ import json
 import statistics
 import math
 from fractions import Fraction
+from pathlib import Path
 
 import Util
 
@@ -21,7 +22,9 @@ class Experiment:
         self.csv_file_name = f"{self.base_directory}/{self.output_video_file_basename}-{experiment_name}.csv"
         self.input_ffprobe_filename = f"{self.base_directory}/{self.output_video_file_basename}-{self.experiment_name}.input_probe.json"
         self.input_csv_file_name = f"{self.base_directory}/{self.output_video_file_basename}-{experiment_name}.input_info.csv"
-        self.csv_file = None
+
+        # Create a backup of the existing csv file if we're rerunning things and I want to read back the encode times
+        self.existing_csv_file_backup_name = f"{self.base_directory}/{self.output_video_file_basename}-{experiment_name}.csv.existing_backup"
 
         self.input_width = None
         self.input_height = None
@@ -32,6 +35,12 @@ class Experiment:
 
     def ffprobe(self):
         print(f'{Util.HEADER}\nRunning ffprobe on Input...')
+
+        # see if the ffprobe file exists already, this isn't a slow op, but it keeps the output cleaner
+        if os.path.exists(self.input_ffprobe_filename):
+            print(
+                f'{Util.HEADER}\nSkipping because {self.input_ffprobe_filename} already exists.\n')
+            return
 
         Util.ffprobe(self.input_video_file_name, self.input_ffprobe_filename, show_streams=True,
         params = [
@@ -93,6 +102,16 @@ class Experiment:
             f'{int(self.input_bitrate):,}' if self.input_bitrate is not None else 'N/A',
             f'{self.input_bytes:,}' if self.input_bytes is not None else 'N/A',
         ])
+
+        # check if we have an existing file and no backup
+        if os.path.exists(self.csv_file_name):
+            print(f'{Util.HEADER}\n\tExisting csv file found')
+
+            if os.path.exists(self.existing_csv_file_backup_name):
+                print(f'{Util.HEADER}\n\tExisting csv backup file found')
+            else:
+                print(f'{Util.HEADER}\n\tBacking it up so I can retrieve things from it without rerunning encodes')
+                os.rename(self.csv_file_name, self.existing_csv_file_backup_name)
 
         with open(self.input_csv_file_name, 'w', newline='') as f:
             writer = csv.writer(f)
@@ -206,8 +225,8 @@ class Experiment:
 
         def run_sub_experiment(self):
             print(f'{Util.HEADER}\nRunning: {self.get_sub_experiment_name()}')
-            #self.transcode()
-            #self.ffprobe()
+            self.transcode()
+            self.ffprobe()
             self.vmaf()
             self.process_results()
             self.write_csv_row()
@@ -241,30 +260,76 @@ class Experiment:
             if self.two_pass_encoding:
                 print(f'{Util.HEADER}\nRunning two pass transcode (Pass 1)...')
 
-                self.transcode_pass_1_seconds = self.ffmpeg(
-                    self.get_extra_ffmpeg_parameters_pass1() 
-                    + [
-                        '-pass', '1', '-passlogfile', self.passlog_filename,
-                        '-f', 'null', 'dev/null',    # For windows, dev/null should be NUL, handle this somehow later?
-                        '-y'
-                    ])
+                needs_run = True
+
+                # see if the passlog files exist already and we have the time recorded in the backup csv
+                if any(Path().glob(f'{self.passlog_filename}*')) and os.path.exists(self.experiment.existing_csv_file_backup_name):
+                    existing_time = Util.get_column_from_csv_row(self.experiment.existing_csv_file_backup_name,
+                                                                 self.video_filename,
+                                                                 'video id',
+                                                                 'encoding_time_pass1_s')
+
+                    if existing_time is not None:
+                        print(f'{Util.HEADER}\nSkipping because passlogs with prefix {self.passlog_filename} already exist and retrieved existing encode time.\n')
+                        self.transcode_pass_1_seconds = float(existing_time)
+                        needs_run = False
+
+                if needs_run:
+                    self.transcode_pass_1_seconds = self.ffmpeg(
+                        self.get_extra_ffmpeg_parameters_pass1()
+                        + [
+                            '-pass', '1', '-passlogfile', self.passlog_filename,
+                            '-f', 'null', 'dev/null',    # For windows, dev/null should be NUL, handle this somehow later?
+                            '-y'
+                        ])
 
                 print(f'{Util.HEADER}\nRunning two pass transcode (Pass 2)...')
 
-                self.transcode_pass_2_seconds = self.ffmpeg(
-                    self.get_extra_ffmpeg_parameters_pass2() 
-                    + [
-                        '-pass', '2', '-passlogfile', self.passlog_filename,
-                    ]
-                    + output_params)
+                needs_run = True
+
+                # see if the video file exists already
+                if os.path.exists(self.video_filename) and os.path.exists(self.experiment.existing_csv_file_backup_name):
+                    existing_time = Util.get_column_from_csv_row(self.experiment.existing_csv_file_backup_name,
+                                                                 self.video_filename,
+                                                                 'video id',
+                                                                 'encoding_time_pass2_s')
+
+                    if existing_time is not None:
+                        print(f'{Util.HEADER}\nSkipping because {self.video_filename} already exists and retrieved existing encode time.\n')
+                        self.transcode_pass_2_seconds = float(existing_time)
+                        needs_run = False
+
+                if needs_run:
+                    self.transcode_pass_2_seconds = self.ffmpeg(
+                        self.get_extra_ffmpeg_parameters_pass2()
+                        + [
+                            '-pass', '2', '-passlogfile', self.passlog_filename,
+                        ]
+                        + output_params)
 
                 self.transcode_seconds = self.transcode_pass_1_seconds + self.transcode_pass_2_seconds
 
             else:
                 print(f'{Util.HEADER}\nRunning one pass transcode...')
-                self.transcode_seconds = self.ffmpeg(
-                    self.get_extra_ffmpeg_parameters_single_pass() 
-                    + output_params)
+
+                needs_run = True
+
+                # see if the video file exists already
+                if os.path.exists(self.video_filename) and os.path.exists(self.experiment.existing_csv_file_backup_name):
+                    existing_time = Util.get_column_from_csv_row(self.experiment.existing_csv_file_backup_name,
+                                                                 self.video_filename,
+                                                                 'video id',
+                                                                 'encoding_time_s')
+
+                    if existing_time is not None:
+                        print(f'{Util.HEADER}\nSkipping because {self.video_filename} already exists and retrieved existing encode time.\n')
+                        self.transcode_seconds = float(existing_time)
+                        needs_run = False
+
+                if needs_run:
+                    self.transcode_seconds = self.ffmpeg(
+                        self.get_extra_ffmpeg_parameters_single_pass()
+                        + output_params)
 
         def get_extra_ffmpeg_parameters(self):
             return []
@@ -281,10 +346,22 @@ class Experiment:
         def ffprobe(self):
             print(f'{Util.HEADER}\nRunning ffprobe on Output...')
 
+            # see if the ffprobe file exists already, this isn't a slow op, but it keeps the output cleaner
+            if os.path.exists(self.output_ffprobe_filename):
+                print(
+                    f'{Util.HEADER}\nSkipping because {self.output_ffprobe_filename} already exists.\n')
+                return
+
             Util.ffprobe(self.video_filename, self.output_ffprobe_filename, show_streams=True)
 
         def vmaf(self):
             print(f'{Util.HEADER}\nRunning vmaf...')
+
+            # see if the vmaf file exists already
+            if os.path.exists(self.vmaf_filename):
+                print(
+                    f'{Util.HEADER}\nSkipping because {self.vmaf_filename} already exists.\n')
+                return
 
             # If downscaling choose area filter
             # If upscaling choose lanczos filter
@@ -307,7 +384,7 @@ class Experiment:
             stream_str = f'[0:v]{stream_options}{reference_filter}{aspect_ratio_params}{stream_post_options}[reference];'\
                          f'[1:v]{stream_options}{distorted_filter}{aspect_ratio_params}{stream_post_options}[distorted];'
 
-            debug_vmaf = True
+            debug_vmaf = False
 
             if debug_vmaf:
                 verbose_info = False
