@@ -396,7 +396,7 @@ class Experiment:
             stream_str = f'[0:v]{stream_options}{reference_filter}{aspect_ratio_params}{stream_post_options}[reference];'\
                          f'[1:v]{stream_options}{distorted_filter}{aspect_ratio_params}{stream_post_options}[distorted];'
 
-            debug_vmaf = False
+            debug_vmaf = True
 
             if debug_vmaf:
                 verbose_info = False
@@ -427,10 +427,10 @@ class Experiment:
                     "drawtext=text='VMAF=%{metadata\\:lavfi.libvmaf.vmaf}':x=20:y=152:fontsize=40:fontcolor=white@0.95:box=1:boxcolor=0x000000@0.5:borderw=2[vmaf_annotated];"
                     
                     # now stack them side by side
-                    f"[r_side_by_side_annotated][vmaf_annotated]hstack=inputs=2,format=yuv420p,drawbox=x=(iw-2)/2:y=0:w=2:h=ih:color=white@0.6:t=fill,settb=AVTB,setpts=N/TB[side_by_side];"
+                    f"[r_side_by_side_annotated][vmaf_annotated]hstack=inputs=2,format=yuv420p,drawbox=x=(iw-2)/2:y=0:w=2:h=ih:color=white@0.6:t=fill[side_by_side];"
                     
                     # output diff video, this should show as few diffs as possible
-                    f"[r_diff][d_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1,settb=AVTB,setpts=N/TB[diff]",
+                    f"[r_diff][d_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1[diff]",
                     
                     '-map', '[side_by_side]', '-vsync', 'vfr', '-fps_mode', 'passthrough', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.side_by_side.mp4', '-y',
                     '-map', '[diff]', '-vsync', 'vfr', '-fps_mode', 'passthrough', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.diff.mp4', '-y',
