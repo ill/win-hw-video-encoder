@@ -248,7 +248,8 @@ class Experiment:
         def ffmpeg(self, params):
             return Util.ffmpeg(self.experiment.input_video_file_name,
             [
-                '-vf', f'{f"fps={self.output_fps}," if self.output_fps >= 0 else ""}scale={self.output_width}:{self.output_height},setsar=1/1',
+                # We need to round the fps so frames are sampled more deterministically between the transcode and the vmaf
+                '-vf', f'{f"fps=fps={self.output_fps}:round=down," if self.output_fps >= 0 else ""}scale={self.output_width}:{self.output_height},setsar=1/1',
                 '-fps_mode', 'cfr' if self.output_fps >= 0 else 'passthrough',
 
                 # drop metadata things

@@ -47,6 +47,7 @@ class CQExperiment(Experiment.Experiment):
                              f'-mxbp-{cq_params.max_bitrate_kbps}k'
                              f'-w-{output_width}'
                              f'-h-{output_height}'
+                             f'-fps-{output_fps}'
                              f'-t-{cq_params.threads}'
                              f'-tc-{cq_params.tile_columns}'
                              f'-{"2Pass" if two_pass_encoding else "1Pass"}'
