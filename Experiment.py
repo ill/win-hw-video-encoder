@@ -300,8 +300,8 @@ class Experiment:
 
             aspect_ratio_params = f':force_original_aspect_ratio={aspect_fill_params if aspect_fill else aspect_fit_params}' if force_aspect_ratio else ''
 
-            stream_options = "setsar=1/1,settb=AVTB,setpts=PTS-STARTPTS,scale=1920:1080:flags="
-            stream_post_options = ",setsar=1/1,setpts=(floor(T*30)/30)/TB,fps=30:round=near:start_time=0,settb=1/30,setpts=N/TB"
+            stream_options = "setsar=1/1,settb=AVTB,setpts=N/TB,scale=1920:1080:flags="
+            stream_post_options = ""#",setsar=1/1,setpts=(floor(T*30)/30)/TB,fps=30:round=near:start_time=0,settb=1/30,setpts=N/TB"
 
             # This forces the timestamps to align, fps to align to 30, scale resolution to 1920x1080 for the default VMAF model, and either aspect fit or aspect fill
             stream_str = f'[0:v]{stream_options}{reference_filter}{aspect_ratio_params}{stream_post_options}[reference];'\
@@ -338,13 +338,13 @@ class Experiment:
                     "drawtext=text='VMAF=%{metadata\\:lavfi.libvmaf.vmaf}':x=20:y=152:fontsize=40:fontcolor=white@0.95:box=1:boxcolor=0x000000@0.5:borderw=2[vmaf_annotated];"
                     
                     # now stack them side by side
-                    f"[r_side_by_side_annotated][vmaf_annotated]hstack=inputs=2,format=yuv420p,drawbox=x=(iw-2)/2:y=0:w=2:h=ih:color=white@0.6:t=fill,settb=AVTB,setpts=N/FRAME_RATE/TB[side_by_side];"
+                    f"[r_side_by_side_annotated][vmaf_annotated]hstack=inputs=2,format=yuv420p,drawbox=x=(iw-2)/2:y=0:w=2:h=ih:color=white@0.6:t=fill,settb=AVTB,setpts=N/TB[side_by_side];"
                     
                     # output diff video, this should show as few diffs as possible
-                    f"[r_diff][d_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1,settb=AVTB,setpts=N/FRAME_RATE/TB[diff]",
+                    f"[r_diff][d_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1,settb=AVTB,setpts=N/TB[diff]",
                     
-                    '-map', '[side_by_side]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.side_by_side.mp4', '-y',
-                    '-map', '[diff]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.diff.mp4', '-y',
+                    '-map', '[side_by_side]', '-vsync', 'vfr', '-fps_mode', 'passthrough', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.side_by_side.mp4', '-y',
+                    '-map', '[diff]', '-vsync', 'vfr', '-fps_mode', 'passthrough', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.diff.mp4', '-y',
                 ])
             else:
                 Util.ffmpeg(self.experiment.input_video_file_name,
