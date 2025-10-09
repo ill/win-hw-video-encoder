@@ -432,8 +432,8 @@ class Experiment:
                     # output diff video, this should show as few diffs as possible
                     f"[r_diff][d_diff]blend=all_mode=difference,format=yuv420p,eq=contrast=5:brightness=0.1[diff]",
                     
-                    '-map', '[side_by_side]', '-vsync', 'vfr', '-fps_mode', 'passthrough', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.side_by_side.mp4', '-y',
-                    '-map', '[diff]', '-vsync', 'vfr', '-fps_mode', 'passthrough', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.diff.mp4', '-y',
+                    '-map', '[side_by_side]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.side_by_side.mp4', '-y',
+                    '-map', '[diff]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.diff.mp4', '-y',
                 ])
             else:
                 Util.ffmpeg(self.experiment.input_video_file_name,
