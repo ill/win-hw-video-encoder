@@ -163,6 +163,17 @@ class Experiment:
         self.process_input()
         self.write_input_csv()
         self.create_csv()
+        self.experiment_implementation()
+        self.post_experiment()
+
+    # This is what you want to actually override in subclasses
+    def experiment_implementation(self):
+        raise NotImplementedError("Override experiment_implementation. That's where you should do subexperiments and whatnot.")
+
+    def post_experiment(self):
+        if os.path.exists(self.existing_csv_file_backup_name):
+            print(f'{Util.HEADER}\n\tRemoving existing csv backup file')
+            os.remove(self.existing_csv_file_backup_name)
 
     def get_scaled_down_to_fit_resolutions(self, resolutions: list[tuple[int, int]]) -> list[tuple[int, int]]:
         results: list[tuple[int, int]] = []

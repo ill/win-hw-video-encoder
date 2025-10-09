@@ -7,9 +7,7 @@ class SpeedExperiment(Experiment.Experiment):
     def get_extra_csv_header_columns(self):
         return ['speed']
     
-    def run_experiment(self):
-        super().run_experiment()
-
+    def experiment_implementation(self):
         for speed in range(0, 7):
             sub_experiment = SpeedExperiment.SubExperiment(self, speed)
             sub_experiment.run_sub_experiment()

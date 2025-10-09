@@ -175,9 +175,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
                                             output_fps=fps,
                                             two_pass_encoding=True).run_sub_experiment()
 
-    def run_experiment(self):
-        super().run_experiment()
-
+    def experiment_implementation(self):
         for resolution in self.get_scaled_down_all_resolutions():
             self.run_experiment_on_resolution(resolution)
 

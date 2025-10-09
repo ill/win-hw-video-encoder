@@ -9,9 +9,7 @@ class CRFExperiment(Experiment.Experiment):
     def get_extra_csv_header_columns(self):
         return ['crf']
     
-    def run_experiment(self):
-        super().run_experiment()
-
+    def experiment_implementation(self):
         # CRFExperiment.SubExperiment(self,
         #                             crf=0,
         #                             output_width=1920,

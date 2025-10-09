@@ -7,9 +7,7 @@ class QualityExperiment(Experiment.Experiment):
     def get_extra_csv_header_columns(self):
         return ['quality']
     
-    def run_experiment(self):
-        super().run_experiment()
-
+    def experiment_implementation(self):
         QualityExperiment.SubExperiment(self, 'good').run_sub_experiment()
         QualityExperiment.SubExperiment(self, 'realtime').run_sub_experiment()
         QualityExperiment.SubExperiment(self, 'best').run_sub_experiment()
