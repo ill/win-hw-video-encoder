@@ -393,10 +393,8 @@ class Experiment:
             stream_post_options = ""#",setsar=1/1,setpts=(floor(T*30)/30)/TB,fps=30:round=near:start_time=0,settb=1/30,setpts=N/TB"
 
             stream_normalize = "setsar=1,"\
-                "zscale=matrixin=bt709:transferin=bt709:primariesin=bt709:rangein=tv:transfer=linear,"\
-                "format=gbrp16le,"\
+                "format=yuv444p16le,"\
                 "zscale=w=if(gte(iw*1080\,ih*1920)\,ceil(1080*iw/ih/2)*2\,1920):h=if(gte(iw*1080\,ih*1920)\,1080\,ceil(1920*ih/iw/2)*2):filter=spline36," \
-                "zscale=matrix=bt709:transfer=bt709:primaries=bt709:range=tv,"\
                 "crop=1920:1080,"\
                 "format=yuv420p,"\
                 "setsar=1,"\
