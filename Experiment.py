@@ -249,7 +249,7 @@ class Experiment:
             return Util.ffmpeg(self.experiment.input_video_file_name,
             [
                 # We need to round the fps so frames are sampled more deterministically between the transcode and the vmaf
-                '-vf', f'{f"fps=fps={self.output_fps}:round=down," if self.output_fps >= 0 else ""}scale={self.output_width}:{self.output_height},setsar=1/1',
+                '-vf', f'{f"fps=fps={self.output_fps}:round=down," if self.output_fps >= 0 else ""}scale={self.output_width}:{self.output_height}:flags=area,setsar=1/1',
                 '-fps_mode', 'cfr' if self.output_fps >= 0 else 'passthrough',
 
                 # drop metadata things
@@ -384,7 +384,7 @@ class Experiment:
             aspect_fit_params = 'decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2'
             aspect_fill_params = 'increase,crop=1920:1080'
 
-            aspect_fill = True
+            aspect_fill = False
             force_aspect_ratio = True
 
             aspect_ratio_params = f':force_original_aspect_ratio={aspect_fill_params if aspect_fill else aspect_fit_params}' if force_aspect_ratio else ''
@@ -392,9 +392,22 @@ class Experiment:
             stream_options = "setsar=1/1,settb=AVTB,setpts=N/TB,scale=1920:1080:flags="
             stream_post_options = ""#",setsar=1/1,setpts=(floor(T*30)/30)/TB,fps=30:round=near:start_time=0,settb=1/30,setpts=N/TB"
 
+            stream_normalize = "setsar=1,"\
+                "zscale=matrixin=bt709:transferin=bt709:primariesin=bt709:rangein=tv:transfer=linear,"\
+                "format=gbrp16le,"\
+                "zscale=w=if(gte(iw*1080\,ih*1920)\,ceil(1080*iw/ih/2)*2\,1920):h=if(gte(iw*1080\,ih*1920)\,1080\,ceil(1920*ih/iw/2)*2):filter=spline36," \
+                "zscale=matrix=bt709:transfer=bt709:primaries=bt709:range=tv,"\
+                "crop=1920:1080,"\
+                "format=yuv420p,"\
+                "setsar=1,"\
+                "settb=AVTB,setpts=N/TB"
+
             # This forces the timestamps to align, fps to align to 30, scale resolution to 1920x1080 for the default VMAF model, and either aspect fit or aspect fill
-            stream_str = f'[0:v]{stream_options}{reference_filter}{aspect_ratio_params}{stream_post_options}[reference];'\
-                         f'[1:v]{stream_options}{distorted_filter}{aspect_ratio_params}{stream_post_options}[distorted];'
+            # stream_str = f'[0:v]{stream_options}{reference_filter}{aspect_ratio_params}{stream_post_options}[reference];'\
+            #              f'[1:v]{stream_options}{distorted_filter}{aspect_ratio_params}{stream_post_options}[distorted];'
+
+            stream_str = f'[0:v]{stream_normalize}[reference];'\
+                         f'[1:v]{stream_normalize}[distorted];'
 
             debug_vmaf = True
 
@@ -462,7 +475,7 @@ class Experiment:
                     break
 
             # Extract required data
-            self.vmaf_mean = vmaf_data["pooled_metrics"]["vmaf"]["harmonic_mean"]
+            self.vmaf_mean = vmaf_data["pooled_metrics"]["vmaf"]["mean"]
             self.vmaf_harmonic_mean = vmaf_data["pooled_metrics"]["vmaf"]["harmonic_mean"]
             self.vmaf_min = vmaf_data["pooled_metrics"]["vmaf"]["min"]
             self.vmaf_max = vmaf_data["pooled_metrics"]["vmaf"]["max"]
