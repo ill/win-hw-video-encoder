@@ -385,7 +385,6 @@ class Experiment:
 
             if aspect_correct_output_width != self.experiment.input_width or aspect_correct_output_height != self.experiment.input_height:
                 input_aspect_ratio = self.experiment.input_width / self.experiment.input_height
-                output_aspect_ratio = aspect_correct_output_width / aspect_correct_output_height
 
                 if aspect_correct_output_width > aspect_correct_output_height:
                     aspect_correct_output_height = aspect_correct_output_width * (1.0 / input_aspect_ratio)
