@@ -187,12 +187,12 @@ class Experiment:
 
         return results    
 
-    def scale_down_to_fit(self, destination_long_side: int, destination_short_side: int) -> tuple[int, int]:
+    def scale_down_to_fit(self, destination_long_side: int, destination_short_side: int, divisible_by: int = 8) -> tuple[int, int]:
         transposed = self.input_width < self.input_height
         long_side = max(self.input_width, self.input_height)
         short_side = min(self.input_width, self.input_height)
 
-        return Util.maybe_scale_down_to_fit(long_side, short_side, destination_long_side, destination_short_side, transposed)
+        return Util.maybe_scale_down_to_fit(long_side, short_side, destination_long_side, destination_short_side, transposed, divisible_by)
     
     def get_scaled_down_common_resolutions(self) -> list[tuple[int, int]]:
         return self.get_scaled_down_to_fit_resolutions(Util.RES_COMMON)
@@ -375,30 +375,35 @@ class Experiment:
                     f'{Util.HEADER}\nSkipping because {self.vmaf_filename} already exists.\n')
                 return
 
-            # If downscaling choose area filter
-            # If upscaling choose lanczos filter
+            # leave at < 0 for no cutoff, this helps with debugging so I don't have to wait forever for an output
+            max_frames = 2
 
-            reference_filter = 'area' if self.experiment.input_width > 1920 else 'lanczos'
-            distorted_filter = 'area' if self.output_width > 1920 else 'lanczos'
+            # due to the rounding to the nearest multiple of 8, the downscaled transcoded video can actually be distorted and vmaf is off
+            # need to account for this by rescaling the transcoded video into 1920x1080 assuming the original aspect ratio so things line up properly
+            aspect_correct_output_width = self.output_width if self.output_width >= 0 else self.experiment.input_width
+            aspect_correct_output_height = self.output_height if self.output_height >= 0 else self.experiment.input_height
 
-            aspect_fit_params = 'decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2'
-            aspect_fill_params = 'increase,crop=1920:1080'
+            if aspect_correct_output_width != self.experiment.input_width or aspect_correct_output_height != self.experiment.input_height:
+                input_aspect_ratio = self.experiment.input_width / self.experiment.input_height
+                output_aspect_ratio = aspect_correct_output_width / aspect_correct_output_height
 
-            aspect_fill = False
-            force_aspect_ratio = True
+                if aspect_correct_output_width > aspect_correct_output_height:
+                    aspect_correct_output_height = aspect_correct_output_width * (1.0 / input_aspect_ratio)
+                else:
+                    aspect_correct_output_width = aspect_correct_output_height * input_aspect_ratio
 
             stream_normalize = "setsar=1,"\
                 "format=yuv444p16le,"\
-                "zscale=w=if(gte(iw*1080\,ih*1920)\,ceil(1080*iw/ih/2)*2\,1920):h=if(gte(iw*1080\,ih*1920)\,1080\,ceil(1920*ih/iw/2)*2):filter=spline36," \
-                "crop=1920:1080,"\
+                "zscale=w=if(gte({video_width}*1080\,{video_height}*1920)\,ceil(1080*{video_width}/{video_height}/2)*2\,1920):h=if(gte({video_width}*1080\,{video_height}*1920)\,1080\,ceil(1920*{video_height}/{video_width}/2)*2):filter=spline36," \
+                "crop=1920:1080:x=0:y=0,"\
                 "format=yuv420p,"\
                 "setsar=1,"\
-                "settb=AVTB,setpts=N/TB"
+                f"settb=AVTB,{f'trim=end_frame={max_frames},' if max_frames >= 0 else ''}setpts=N/TB"
 
-            stream_str = f'[0:v]{stream_normalize}[reference];'\
-                         f'[1:v]{stream_normalize}[distorted];'
+            stream_str = f'[0:v]{stream_normalize.format(video_width="iw", video_height="ih")}[reference];'\
+                         f'[1:v]{stream_normalize.format(video_width=str(aspect_correct_output_width), video_height=str(aspect_correct_output_height))}[distorted];'
 
-            debug_vmaf = False
+            debug_vmaf = True
 
             if debug_vmaf:
                 verbose_info = False

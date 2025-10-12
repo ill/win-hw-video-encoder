@@ -61,22 +61,27 @@ def inclusive_range(start, end, step = 1):
 def ceil_to_divisible_by(original: int, divisible_by: int) -> int:
     return (int((original - 1) / divisible_by) + 1) * divisible_by
 
-def maybe_scale_down_to_fit(current_long_side: int, current_short_side: int, max_long_side: int, max_short_side: int, transposed: bool) -> tuple[int, int]:
+def maybe_scale_down_to_fit(current_long_side: int,
+                            current_short_side: int,
+                            max_long_side: int,
+                            max_short_side: int,
+                            transposed: bool,
+                            divisible_by: int = 8) -> tuple[int, int]:
     long_side: int = 0
     short_side: int = 0
 
-    if (current_long_side <= max_long_side and current_short_side <= max_short_side):
+    if current_long_side <= max_long_side and current_short_side <= max_short_side:
         # Fit; still try to make it divisible by 8.
-        long_side = ceil_to_divisible_by(current_long_side, 8)
-        short_side = ceil_to_divisible_by(current_short_side, 8)
-    elif (current_long_side / current_short_side > max_long_side / max_short_side):
+        long_side = ceil_to_divisible_by(current_long_side, divisible_by)
+        short_side = ceil_to_divisible_by(current_short_side, divisible_by)
+    elif current_long_side / current_short_side > max_long_side / max_short_side:
         # If long side is too long; should scale down with long side to fit.
-        long_side = ceil_to_divisible_by(max_long_side, 8)
-        short_side = ceil_to_divisible_by(max_long_side * current_short_side / current_long_side, 8)
+        long_side = ceil_to_divisible_by(max_long_side, divisible_by)
+        short_side = ceil_to_divisible_by(max_long_side * current_short_side / current_long_side, divisible_by)
     else:
         # If short side is too long; should scale down with short side to fit.
-        long_side = ceil_to_divisible_by(max_short_side * current_long_side / current_short_side, 8)
-        short_side = ceil_to_divisible_by(max_short_side, 8)
+        long_side = ceil_to_divisible_by(max_short_side * current_long_side / current_short_side, divisible_by)
+        short_side = ceil_to_divisible_by(max_short_side, divisible_by)
 
     return (short_side if transposed else long_side, 
             long_side if transposed else short_side)
