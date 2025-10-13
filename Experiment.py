@@ -376,7 +376,7 @@ class Experiment:
                 return
 
             # leave at < 0 for no cutoff, this helps with debugging so I don't have to wait forever for an output
-            max_frames = 2
+            max_frames = -1
 
             # due to the rounding to the nearest multiple of 8, the downscaled transcoded video can actually be distorted and vmaf is off
             # need to account for this by rescaling the transcoded video into 1920x1080 assuming the original aspect ratio so things line up properly
