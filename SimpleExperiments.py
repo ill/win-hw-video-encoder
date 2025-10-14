@@ -32,6 +32,8 @@ def main():
     CRFExperiment.CRFExperiment('badminton.mp4', 'badminton').run_experiment()
     CRFExperiment.CRFExperiment('ios_native_recorder.mp4', 'ios_native_recorder').run_experiment()
     CRFExperiment.CRFExperiment('steal-a-brainrot.mp4', 'steal-a-brainrot').run_experiment()
+    CRFExperiment.CRFExperiment('Halo_NoMotion_20sec_1080p.mp4', 'Halo_NoMotion_20sec_1080p').run_experiment()
+    CRFExperiment.CRFExperiment('Halo_Montage_1080p.mp4', 'Halo_Montage_1080p').run_experiment()
     CRFExperiment.CRFExperiment('strongest-battlegrounds-mac-1440.mov', 'strongest-battlegrounds-mac-1440').run_experiment()
     CRFExperiment.CRFExperiment('TinyWheelsiPad1920x1440x60xHEVCScreenRecording.mp4', 'TinyWheelsiPad1920x1440x60xHEVCScreenRecording').run_experiment()
 

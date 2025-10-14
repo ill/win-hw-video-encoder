@@ -402,7 +402,7 @@ class Experiment:
             stream_str = f'[0:v]{stream_normalize.format(video_width="iw", video_height="ih")}[reference];'\
                          f'[1:v]{stream_normalize.format(video_width=str(aspect_correct_output_width), video_height=str(aspect_correct_output_height))}[distorted];'
 
-            debug_vmaf = True
+            debug_vmaf = False
 
             if debug_vmaf:
                 verbose_info = False
