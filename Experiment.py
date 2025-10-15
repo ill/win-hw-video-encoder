@@ -221,6 +221,9 @@ class Experiment:
             self.output_ffprobe_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.probe.json"
             self.vmaf_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}.vmaf.json"
 
+            # In order for VMAF frames to line up, if we are doing a custom fps then make as lossless reencode as possible of the original video in the new fps and encode off of that
+            self.reference_video_filename = self.experiment.input_video_file_name
+
             self.passlog_filename = f"{self.experiment.base_directory}/{self.experiment.output_video_file_basename}-{self.experiment.experiment_name}-{self.sub_experiment_name}-passlog" if two_pass_encoding else None
 
             self.transcode_seconds = 0.0
@@ -246,11 +249,22 @@ class Experiment:
             return f'{self.experiment.experiment_name}: {self.sub_experiment_name}'
         
         def ffmpeg(self, params):
-            return Util.ffmpeg(self.experiment.input_video_file_name,
+            # if we're doing a custom framerate, lazily create a lossless resample in the new framerate so the VMAF frames line up
+            if self.output_fps >= 0:
+                self.reference_video_filename = f'resampled-fps-{self.output_fps}-{self.experiment.input_video_file_name}'
+
+                print(f'{Util.HEADER}\nEncoding at fps:{self.output_fps} so creating a lossless resampled video from the original: {self.reference_video_filename}\n')
+
+                if os.path.exists(self.reference_video_filename):
+                    print(f'{Util.HEADER}\nSkipping since file already exists: {self.reference_video_filename}\n')
+                else:
+                    Util.ffmpeg(self.experiment.input_video_file_name,
+                                ['-r', str(self.output_fps), '-c', 'copy', self.reference_video_filename])
+
+            return Util.ffmpeg(self.reference_video_filename,
             [
-                # We need to round the fps so frames are sampled more deterministically between the transcode and the vmaf
-                '-vf', f'{f"fps=fps={self.output_fps}:round=down," if self.output_fps >= 0 else ""}zscale={self.output_width}:{self.output_height}:filter=spline36,setsar=1/1',
-                '-fps_mode', 'cfr' if self.output_fps >= 0 else 'passthrough',
+                '-vf', f'zscale={self.output_width}:{self.output_height}:filter=spline36,setsar=1/1',
+                '-fps_mode', 'passthrough',
 
                 # drop metadata things
                 '-dn',
@@ -402,13 +416,13 @@ class Experiment:
             stream_str = f'[0:v]{stream_normalize.format(video_width="iw", video_height="ih")}[reference];'\
                          f'[1:v]{stream_normalize.format(video_width=str(aspect_correct_output_width), video_height=str(aspect_correct_output_height))}[distorted];'
 
-            debug_vmaf = False
+            debug_vmaf = True
 
             if debug_vmaf:
                 verbose_info = False
 
                 # outputs a video of side by side comparison and diff comparison
-                Util.ffmpeg(self.experiment.input_video_file_name,
+                Util.ffmpeg(self.reference_video_filename,
                 [
                     '-i', self.video_filename,
 
@@ -442,7 +456,7 @@ class Experiment:
                     '-map', '[diff]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', f'{self.video_filename}.diff.mp4', '-y',
                 ])
             else:
-                Util.ffmpeg(self.experiment.input_video_file_name,
+                Util.ffmpeg(self.reference_video_filename,
                 [
                     '-i', self.video_filename,
                     '-lavfi',
