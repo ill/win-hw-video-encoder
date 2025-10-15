@@ -1,4 +1,5 @@
 import os
+import sys
 
 import csv
 import json
@@ -64,6 +65,22 @@ class Experiment:
                 self.input_bitrate = stream.get('bit_rate')
                 fps_str = stream.get('avg_frame_rate')
                 self.input_fps = float(Fraction(fps_str)) if '/' in fps_str else float(fps_str)
+
+                for side_data in stream.get('side_data_list', []):
+                    if side_data.get('side_data_type') == 'Display Matrix':
+                        print(f'{Util.HEADER}\nFound display matrix data so video might be distorted in some way\n')
+
+                        rotation = side_data.get('rotation', 0)
+
+                        if rotation == 90 or rotation == 180:
+                            print(f'{Util.HEADER}\nDetected rotation of {rotation} so transposing width and height\n')
+                            self.input_width, self.input_height = self.input_height, self.input_width
+                        elif rotation != 0 or rotation != 180:
+                            print(f'{Util.HEADER}\nDetected some unsupported rotation of {rotation}. Exiting because I don\'t handle that\n')
+                            sys.exit(1)
+
+                        break
+
                 break
 
         self.input_bytes = os.path.getsize(self.input_video_file_name)
