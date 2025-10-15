@@ -1,4 +1,5 @@
 import CQExperiment
+import Util
 
 # Based on https://developers.google.com/media/vp9/settings/vod
 def get_google_cq_params(resolution: tuple[int, int]) -> CQExperiment.CQExperiment.SubExperiment.CQParams:

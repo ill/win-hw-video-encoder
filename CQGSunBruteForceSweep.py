@@ -55,7 +55,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         speed_pass_2_step = 1
 
         one_pass_encoding = True
-        two_pass_encoding = True
+        two_pass_encoding = False
 
         print(f'{Util.HEADER}\nSweeping Values Between')
         print(f'\tcrf: {crf_from} - {crf_to} step: {crf_step}')
@@ -176,8 +176,10 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
                                             two_pass_encoding=True).run_sub_experiment()
 
     def experiment_implementation(self):
-        for resolution in self.get_scaled_down_all_resolutions():
-            self.run_experiment_on_resolution(resolution)
+        # for resolution in self.get_scaled_down_all_resolutions():
+        #     self.run_experiment_on_resolution(resolution)
+
+        self.run_experiment_on_resolution((-1, -1))
 
     class SubExperiment(CQExperiment.CQExperiment.SubExperiment):
         def __init__(self, experiment,

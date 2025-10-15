@@ -10,26 +10,26 @@ class CRFExperiment(Experiment.Experiment):
         return ['crf']
     
     def experiment_implementation(self):
-        # CRFExperiment.SubExperiment(self,
-        #                             crf=0).run_sub_experiment()
+        CRFExperiment.SubExperiment(self,
+                                    crf=0).run_sub_experiment()
         #
         # CRFExperiment.SubExperiment(self,
         #                             crf=0,
         #                             output_width=1920,
         #                             output_height=888).run_sub_experiment()
 
-        for resolution in self.get_scaled_down_all_resolutions():
-            for crf in Util.inclusive_range(0, 63, 3):
-                CRFExperiment.SubExperiment(self,
-                                            crf=crf,
-                                            output_width=resolution[0],
-                                            output_height=resolution[1]).run_sub_experiment()
-
-                CRFExperiment.SubExperiment(self,
-                                            crf=crf,
-                                            output_width=resolution[0],
-                                            output_height=resolution[1],
-                                            two_pass_encoding=True).run_sub_experiment()
+        # for resolution in self.get_scaled_down_all_resolutions():
+        #     for crf in Util.inclusive_range(0, 63, 3):
+        #         CRFExperiment.SubExperiment(self,
+        #                                     crf=crf,
+        #                                     output_width=resolution[0],
+        #                                     output_height=resolution[1]).run_sub_experiment()
+        #
+        #         CRFExperiment.SubExperiment(self,
+        #                                     crf=crf,
+        #                                     output_width=resolution[0],
+        #                                     output_height=resolution[1],
+        #                                     two_pass_encoding=True).run_sub_experiment()
 
     class SubExperiment(Experiment.Experiment.SubExperiment):
         def __init__(self,
