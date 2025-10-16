@@ -19,7 +19,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         crf_to = 0
         crf_step = 1
 
-        gsuns = [1.0]#[0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
+        gsuns = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
 
         # Try the original bitrate and 30 fps
         # This is a set so if original bitrate is 30 we're good on a single set element
@@ -55,7 +55,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         speed_pass_2_step = 1
 
         one_pass_encoding = True
-        two_pass_encoding = False
+        two_pass_encoding = True
 
         print(f'{Util.HEADER}\nSweeping Values Between')
         print(f'\tcrf: {crf_from} - {crf_to} step: {crf_step}')
@@ -176,10 +176,10 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
                                             two_pass_encoding=True).run_sub_experiment()
 
     def experiment_implementation(self):
-        # for resolution in self.get_scaled_down_all_resolutions():
-        #     self.run_experiment_on_resolution(resolution)
+        for resolution in self.get_scaled_down_all_resolutions():
+            self.run_experiment_on_resolution(resolution)
 
-        self.run_experiment_on_resolution((-1, -1))
+        #self.run_experiment_on_resolution(resolution=self.scale_down_to_fit(1280, 720))
 
     class SubExperiment(CQExperiment.CQExperiment.SubExperiment):
         def __init__(self, experiment,

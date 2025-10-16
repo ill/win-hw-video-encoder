@@ -37,16 +37,16 @@ def main():
     # CRFExperiment.CRFExperiment('strongest-battlegrounds-mac-1440.mov', 'strongest-battlegrounds-mac-1440').run_experiment()
     # CRFExperiment.CRFExperiment('TinyWheelsiPad1920x1440x60xHEVCScreenRecording.mp4', 'TinyWheelsiPad1920x1440x60xHEVCScreenRecording').run_experiment()
 
-    CQGoogleExperiment.CQGoogleExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
-    CQGoogleExperiment.CQGoogleExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
-    CQGoogleExperiment.CQGoogleExperiment('sonichd.mp4', 'sonichd').run_experiment()
-    CQGoogleExperiment.CQGoogleExperiment('badminton.mp4', 'badminton').run_experiment()
-    CQGoogleExperiment.CQGoogleExperiment('ios_native_recorder.mp4', 'ios_native_recorder').run_experiment()
-    CQGoogleExperiment.CQGoogleExperiment('steal-a-brainrot.mp4', 'steal-a-brainrot').run_experiment()
-    CQGoogleExperiment.CQGoogleExperiment('Halo_NoMotion_20sec_1080p.mp4', 'Halo_NoMotion_20sec_1080p').run_experiment()
-    CQGoogleExperiment.CQGoogleExperiment('Halo_Montage_1080p.mp4', 'Halo_Montage_1080p').run_experiment()
-    CQGoogleExperiment.CQGoogleExperiment('strongest-battlegrounds-mac-1440.mov', 'strongest-battlegrounds-mac-1440').run_experiment()
-    CQGoogleExperiment.CQGoogleExperiment('TinyWheelsiPad1920x1440x60xHEVCScreenRecording.mp4', 'TinyWheelsiPad1920x1440x60xHEVCScreenRecording').run_experiment()
+    # CQGoogleExperiment.CQGoogleExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
+    # CQGoogleExperiment.CQGoogleExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    # CQGoogleExperiment.CQGoogleExperiment('sonichd.mp4', 'sonichd').run_experiment()
+    # CQGoogleExperiment.CQGoogleExperiment('badminton.mp4', 'badminton').run_experiment()
+    # CQGoogleExperiment.CQGoogleExperiment('ios_native_recorder.mp4', 'ios_native_recorder').run_experiment()
+    # CQGoogleExperiment.CQGoogleExperiment('steal-a-brainrot.mp4', 'steal-a-brainrot').run_experiment()
+    # CQGoogleExperiment.CQGoogleExperiment('Halo_NoMotion_20sec_1080p.mp4', 'Halo_NoMotion_20sec_1080p').run_experiment()
+    # CQGoogleExperiment.CQGoogleExperiment('Halo_Montage_1080p.mp4', 'Halo_Montage_1080p').run_experiment()
+    # CQGoogleExperiment.CQGoogleExperiment('strongest-battlegrounds-mac-1440.mov', 'strongest-battlegrounds-mac-1440').run_experiment()
+    # CQGoogleExperiment.CQGoogleExperiment('TinyWheelsiPad1920x1440x60xHEVCScreenRecording.mp4', 'TinyWheelsiPad1920x1440x60xHEVCScreenRecording').run_experiment()
 
     #CQGoogleExperiment.CQGoogleExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
     #CQGoogleExperiment.CQGoogleExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
@@ -54,9 +54,11 @@ def main():
 
     #CQGoogleExperimentBruteForceSweep.CQGoogleExperimentBruteForceSweep('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
 
-    #CQGSunBruteForceSweep.CQGSunBruteForceSweep('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
-    #CQGSunBruteForceSweep.CQGSunBruteForceSweep('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
-    #CQGSunBruteForceSweep.CQGSunBruteForceSweep('sonichd.mp4', 'sonichd').run_experiment()
+    CQGSunBruteForceSweep.CQGSunBruteForceSweep('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
+    CQGSunBruteForceSweep.CQGSunBruteForceSweep('Halo_NoMotion_20sec_1080p.mp4', 'Halo_NoMotion_20sec_1080p').run_experiment()
+    CQGSunBruteForceSweep.CQGSunBruteForceSweep('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    CQGSunBruteForceSweep.CQGSunBruteForceSweep('sonichd.mp4', 'sonichd').run_experiment()
+    CQGSunBruteForceSweep.CQGSunBruteForceSweep('badminton.mp4', 'badminton').run_experiment()
 
     print('Done.')
 
