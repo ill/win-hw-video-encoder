@@ -91,7 +91,7 @@ class Experiment:
             \n\theight:{str(self.input_height) if self.input_height is not None else 'N/A'}\
             \n\tfps:{str(self.input_fps) if self.input_fps is not None else 'N/A'}\
             \n\tduration_s:{str(self.input_duration_s) if self.input_duration_s is not None else 'N/A'}\
-            \n\tbitrate:{f'{int(self.input_bitrate):,}' if self.input_bitrate is not None else 'N/A'}\
+            \n\tbitrate_bps:{f'{int(self.input_bitrate):,}' if self.input_bitrate is not None else 'N/A'}\
             \n\tsize_bytes:{f'{self.input_bytes:,}' if self.input_bytes is not None else 'N/A'}")
         
     def write_input_csv(self):
@@ -104,7 +104,7 @@ class Experiment:
             'height',
             'fps',
             'duration_s',
-            'bitrate',
+            'bitrate_bps',
             'file_bytes'
         ])
 
@@ -161,7 +161,7 @@ class Experiment:
 
             'file_bytes',
 
-            'actual_bitrate',
+            'actual_bitrate_bps',
             'bpb',            
             
             'video id',
@@ -497,6 +497,10 @@ class Experiment:
                 if stream.get('codec_type') == 'video':
                     self.actual_bitrate = stream.get('bit_rate')
                     break
+
+            # If we didn't find bitrate just set it to the video size divided by length
+            if self.actual_bitrate is None:
+                self.actual_bitrate = float(os.path.getsize(self.video_filename)) / float(self.experiment.input_duration_s)
 
             # Extract required data
             self.vmaf_mean = vmaf_data["pooled_metrics"]["vmaf"]["mean"]

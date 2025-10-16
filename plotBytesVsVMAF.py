@@ -337,6 +337,7 @@ def highGraphs():
             dims={
                 (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
                 (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (960, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54)),
                 (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
             },
             label='steal-a-brainrot'
