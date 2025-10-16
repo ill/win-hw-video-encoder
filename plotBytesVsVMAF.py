@@ -4,9 +4,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import itertools
 import numpy as np
+import matplotlib.patheffects as path_effects
 
 @dataclass
-class WidthSettings:
+class DimensionSettings:
     enable_1pass: bool = True
     enable_2pass: bool = True
     crf_range: Optional[Tuple[float, float]] = None  # (min_crf, max_crf) or None
@@ -14,7 +15,8 @@ class WidthSettings:
 @dataclass
 class FileSettings:
     csv_file: str
-    widths: Dict[int, WidthSettings] = field(default_factory=dict)  # width:int -> WidthSettings
+    # Key: (width, height) tuple. Use -1 for width or height to mean "all".
+    dims: Dict[Tuple[int, int], DimensionSettings] = field(default_factory=dict)
     label: Optional[str] = None  # Optional label for legend; defaults to csv_file if not set
 
 def get_distinct_colors(n):
@@ -30,7 +32,7 @@ def get_distinct_colors(n):
         colors.extend(hsv_colors)
     return colors[:n]
 
-def plot_combined_bd_class(
+def plot_combined_bd_class_dim(
     file_settings_list: List[FileSettings],
     output_filename: str,
     show_plot: bool = False
@@ -47,7 +49,7 @@ def plot_combined_bd_class(
     for file_idx, file_settings in enumerate(file_settings_list):
         csv_file = file_settings.csv_file
         label = file_settings.label or csv_file
-        widths_settings = file_settings.widths
+        dims_settings = file_settings.dims
 
         df = pd.read_csv(csv_file, sep=',')
         df['file_bytes'] = df['file_bytes'].astype(str).str.replace(',', '')
@@ -64,27 +66,42 @@ def plot_combined_bd_class(
             return '2-pass'
         df['pass_type'] = df['encoding_time_pass1_s'].apply(detect_pass_type)
 
-        # If widths dict is empty, use all widths with defaults
-        if not widths_settings:
-            unique_widths = sorted(df['width'].unique())
-            widths_settings = {w: WidthSettings() for w in unique_widths}
+        # If dims dict is empty, use all (width, height) pairs with defaults
+        if not dims_settings:
+            unique_dims = set(zip(df['width'], df['height']))
+            dims_settings = {dim: DimensionSettings() for dim in unique_dims}
 
-        for width, wsettings in widths_settings.items():
-            # Filter by width
-            sub = df[df['width'] == width]
-            # Filter by pass type
+        for (width, height), dsettings in dims_settings.items():
+            # Filtering logic
+            if width >= 0 and height >= 0:
+                sub = df[(df['width'] == width) & (df['height'] == height)]
+                group_label = f"{label} | {width}x{height}"
+            elif width >= 0 and height < 0:
+                sub = df[df['width'] == width]
+                group_label = f"{label} | width={width}"
+            elif width < 0 and height >= 0:
+                sub = df[df['height'] == height]
+                group_label = f"{label} | height={height}"
+            else:
+                # Both negative: all data
+                sub = df
+                group_label = f"{label} | all"
+
+            # Pass type filtering
             pass_types = []
-            if wsettings.enable_1pass:
+            if dsettings.enable_1pass:
                 pass_types.append('1-pass')
-            if wsettings.enable_2pass:
+            if dsettings.enable_2pass:
                 pass_types.append('2-pass')
             sub = sub[sub['pass_type'].isin(pass_types)]
-            # Filter by CRF range
-            if wsettings.crf_range is not None:
-                min_crf, max_crf = wsettings.crf_range
+
+            # CRF range filtering
+            if dsettings.crf_range is not None:
+                min_crf, max_crf = dsettings.crf_range
                 sub = sub[(sub['crf'] >= min_crf) & (sub['crf'] <= max_crf)]
             if sub.empty:
                 continue
+
             for pass_type in pass_types:
                 group = sub[sub['pass_type'] == pass_type]
                 if group.empty:
@@ -93,13 +110,13 @@ def plot_combined_bd_class(
                 sort_idx = np.argsort(group['file_MB'].values)
                 plot_data.append({
                     'file': label,
-                    'width': width,
+                    'dim': (width, height),
                     'pass_type': pass_type,
                     'file_MB': group['file_MB'].values[sort_idx],
                     'vmaf_mean': group['vmaf_mean'].values[sort_idx],
                     'crf': group['crf'].values[sort_idx]
                 })
-                legend_labels.append(f"{label} | {width} | {pass_type}")
+                legend_labels.append(f"{group_label} | {pass_type}")
 
     n_groups = len(plot_data)
     colors = get_distinct_colors(n_groups)
@@ -131,13 +148,20 @@ def plot_combined_bd_class(
             s=80,
             alpha=0.95
         )
-        # Label each point with its CRF value
+        # Label each point with its CRF value in white with a black outline for contrast
         for x, y, crf in zip(pdict['file_MB'], pdict['vmaf_mean'], pdict['crf']):
-            ax.text(x, y, str(int(crf)), fontsize=8, ha='left', va='bottom', color=color)
+            txt = ax.text(
+                x, y, str(int(crf)),
+                fontsize=8, ha='left', va='bottom', color='white', zorder=10
+            )
+            txt.set_path_effects([
+                path_effects.Stroke(linewidth=1.5, foreground='black'),
+                path_effects.Normal()
+            ])
 
     ax.set_xlabel('File Size (MB)')
     ax.set_ylabel('VMAF Mean')
-    ax.set_title('Combined BD Curve (Grouped by File, Width, Pass Type)')
+    ax.set_title('Combined BD Curve (Grouped by File, (Width, Height), Pass Type)')
     ax.legend(fontsize=8, loc='best', ncol=2)
     plt.tight_layout()
 
@@ -162,20 +186,20 @@ if __name__ == "__main__":
     # Define your settings using the classes
     file_structs = [
         FileSettings(
-            csv_file='Out/CRF/sonichd/sonichd-CRF.csv',
-            widths={
-                1920: WidthSettings(enable_1pass=False, crf_range=(10, 63)),
-                1280: WidthSettings(enable_1pass=False, crf_range=(10, 63)),
-                640: WidthSettings(enable_1pass=False, crf_range=(10, 54))
+            csv_file='Out--Latest/CRF-Backup/sonichd/sonichd-CRF.csv',
+            dims={
+                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 54))
             },
             label='SonicHD'
         ),
         FileSettings(
-            csv_file='Out/CRF/badminton/badminton-CRF.csv',
-            widths={
-                1920: WidthSettings(enable_1pass=False, crf_range=(10, 63)),
-                1280: WidthSettings(enable_1pass=False, crf_range=(10, 63)),
-                640: WidthSettings(enable_1pass=False, crf_range=(10, 54))
+            csv_file='Out--Latest/CRF-Backup/badminton/badminton-CRF.csv',
+            dims={
+                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 54))
             },
             label='Badminton'
         ),
@@ -188,7 +212,7 @@ if __name__ == "__main__":
         # )
     ]
 
-    plot_combined_bd_class(
+    plot_combined_bd_class_dim(
         file_settings_list=file_structs,
         output_filename='combined_bd_graph.png',
         show_plot=True
