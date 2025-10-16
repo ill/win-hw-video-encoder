@@ -302,7 +302,78 @@ def plot_combined_bd_class_dim(
 #plot_bd('Out/CRF/sonichd/sonichd-CRF.csv', min_crf=18, max_crf=42)
 
 
-if __name__ == "__main__":
+def highGraphs():
+    # Define your settings using the classes
+    file_structs = [
+        # FileSettings(
+        #     csv_file='Out--Latest/CRF-Backup/sonichd/sonichd-CRF.csv',
+        #     dims={
+        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #     },
+        #     label='SonicHD'
+        # ),
+        # FileSettings(
+        #     csv_file='Out--Latest/CRF-Backup/badminton/badminton-CRF.csv',
+        #     dims={
+        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #     },
+        #     label='badminton'
+        # ),
+        # FileSettings(
+        #     csv_file='Out--Latest/CRF-Backup/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
+        #     dims={
+        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #     },
+        #     label='1440p-av1-42sec'
+        # ),
+        FileSettings(
+            csv_file='Out--Latest/CRF-Backup/steal-a-brainrot/steal-a-brainrot-CRF.csv',
+            dims={
+                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+            },
+            label='steal-a-brainrot'
+        ),
+    ]
+
+    plot_combined_bd_class_dim(
+        file_settings_list=file_structs,
+        output_filename='combined_bd_graph.png',
+        show_plot=True,
+        use_leader_lines=False,
+        show_crf=True,
+        show_filesize=False
+    )
+
+def lowMotionGraphs():
+    # Define your settings using the classes
+    file_structs = [
+        FileSettings(
+            csv_file='Out--Latest/CRF-Backup/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CRF.csv',
+            dims={
+                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(8, 42))
+            },
+            label='Halo_NoMotion_20sec_1080p'
+        )
+    ]
+
+    plot_combined_bd_class_dim(
+        file_settings_list=file_structs,
+        output_filename='combined_low_motion_bd_graph.png',
+        show_plot=True,
+        use_leader_lines=False,
+        show_crf=True,
+        show_filesize=False
+    )
+
+def sonichdGraphs():
     # Define your settings using the classes
     file_structs = [
         FileSettings(
@@ -310,33 +381,25 @@ if __name__ == "__main__":
             dims={
                 (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
                 (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 54))
+                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54)),
             },
             label='SonicHD'
         ),
-        FileSettings(
-            csv_file='Out--Latest/CRF-Backup/badminton/badminton-CRF.csv',
-            dims={
-                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 54))
-            },
-            label='Badminton'
-        ),
-        # FileSettings(
-        #     csv_file='Out/CRF/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CRF.csv',
-        #     widths={
-        #         1920: WidthSettings(enable_1pass=False, crf_range=(8, 42))
-        #     },
-        #     label='Halo_NoMotion_20sec_1080p'
-        # )
     ]
 
     plot_combined_bd_class_dim(
         file_settings_list=file_structs,
-        output_filename='combined_bd_graph.png',
+        output_filename='combined_sonichd_bd_graph.png',
         show_plot=True,
-        use_leader_lines=True,
-        show_crf=False,
-        show_filesize=True
+        use_leader_lines=False,
+        show_crf=True,
+        show_filesize=False
     )
+
+
+if __name__ == "__main__":
+    highGraphs()
+
+    #lowMotionGraphs()
+
+    #sonichdGraphs()
