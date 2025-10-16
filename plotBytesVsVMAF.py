@@ -2,9 +2,11 @@ from dataclasses import dataclass, field
 from typing import Optional, Tuple, Dict, List
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import itertools
 import numpy as np
 import matplotlib.patheffects as path_effects
+from adjustText import adjust_text  # <-- Correct import
 
 @dataclass
 class DimensionSettings:
@@ -20,28 +22,51 @@ class FileSettings:
     label: Optional[str] = None  # Optional label for legend; defaults to csv_file if not set
 
 def get_distinct_colors(n):
-    """Return n visually distinct colors using matplotlib's tab20, tab20b, tab20c, and hsv if needed."""
     base_palettes = ['tab20', 'tab20b', 'tab20c']
     colors = []
     for palette in base_palettes:
         cmap = plt.get_cmap(palette)
         colors.extend([cmap(i) for i in range(cmap.N)])
     if n > len(colors):
-        # Use HSV for even more colors
         hsv_colors = [plt.cm.hsv(i / n) for i in range(n - len(colors))]
         colors.extend(hsv_colors)
     return colors[:n]
 
+def format_bytes(num_bytes):
+    num_bytes = float(num_bytes)
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if num_bytes < 1000:
+            return f"{num_bytes:.1f} {unit}"
+        num_bytes /= 1000
+    return f"{num_bytes:.1f} PB"
+
+def compute_normals(x, y):
+    x = np.asarray(x)
+    y = np.asarray(y)
+    n = len(x)
+    dx = np.zeros(n)
+    dy = np.zeros(n)
+    dx[1:-1] = (x[2:] - x[:-2]) / 2
+    dy[1:-1] = (y[2:] - y[:-2]) / 2
+    dx[0] = x[1] - x[0]
+    dy[0] = y[1] - y[0]
+    dx[-1] = x[-1] - x[-2]
+    dy[-1] = y[-1] - y[-2]
+    norm = np.sqrt(dx**2 + dy**2)
+    norm[norm == 0] = 1
+    nx = -dy / norm
+    ny = dx / norm
+    return nx, ny
+
 def plot_combined_bd_class_dim(
     file_settings_list: List[FileSettings],
     output_filename: str,
-    show_plot: bool = False
+    show_plot: bool = False,
+    use_leader_lines: bool = True,
+    show_crf: bool = True,
+    show_filesize: bool = True,
+    normal_offset: float = 0.18  # Offset distance along normal (in data units)
 ):
-    """
-    file_settings_list: List of FileSettings instances.
-    output_filename: Path to save the combined plot.
-    show_plot: Whether to display the plot interactively.
-    """
     marker_cycle = ['o', 's', 'D', '^', 'v', 'P', 'X', '*', '<', '>', 'h', 'H', 'd', 'p', '|', '_', '+', 'x', '1', '2', '3', '4']
     plot_data = []
     legend_labels = []
@@ -52,11 +77,11 @@ def plot_combined_bd_class_dim(
         dims_settings = file_settings.dims
 
         df = pd.read_csv(csv_file, sep=',')
-        df['file_bytes'] = df['file_bytes'].astype(str).str.replace(',', '')
-        df['file_MB'] = df['file_bytes'].astype(int) / 1_048_576
+        df['file_bytes_raw'] = df['file_bytes'].astype(str).str.replace(',', '')
+        df['file_bytes'] = df['file_bytes_raw'].astype(int)
+        df['file_MB'] = df['file_bytes'] / 1_048_576
         df['crf'] = pd.to_numeric(df['crf'], errors='coerce')
 
-        # Robust pass type detection
         def detect_pass_type(x):
             if pd.isna(x):
                 return '1-pass'
@@ -66,13 +91,11 @@ def plot_combined_bd_class_dim(
             return '2-pass'
         df['pass_type'] = df['encoding_time_pass1_s'].apply(detect_pass_type)
 
-        # If dims dict is empty, use all (width, height) pairs with defaults
         if not dims_settings:
             unique_dims = set(zip(df['width'], df['height']))
             dims_settings = {dim: DimensionSettings() for dim in unique_dims}
 
         for (width, height), dsettings in dims_settings.items():
-            # Filtering logic
             if width >= 0 and height >= 0:
                 sub = df[(df['width'] == width) & (df['height'] == height)]
                 group_label = f"{label} | {width}x{height}"
@@ -83,11 +106,9 @@ def plot_combined_bd_class_dim(
                 sub = df[df['height'] == height]
                 group_label = f"{label} | height={height}"
             else:
-                # Both negative: all data
                 sub = df
                 group_label = f"{label} | all"
 
-            # Pass type filtering
             pass_types = []
             if dsettings.enable_1pass:
                 pass_types.append('1-pass')
@@ -95,7 +116,6 @@ def plot_combined_bd_class_dim(
                 pass_types.append('2-pass')
             sub = sub[sub['pass_type'].isin(pass_types)]
 
-            # CRF range filtering
             if dsettings.crf_range is not None:
                 min_crf, max_crf = dsettings.crf_range
                 sub = sub[(sub['crf'] >= min_crf) & (sub['crf'] <= max_crf)]
@@ -106,7 +126,6 @@ def plot_combined_bd_class_dim(
                 group = sub[sub['pass_type'] == pass_type]
                 if group.empty:
                     continue
-                # Sort by file_MB for line plotting
                 sort_idx = np.argsort(group['file_MB'].values)
                 plot_data.append({
                     'file': label,
@@ -114,7 +133,8 @@ def plot_combined_bd_class_dim(
                     'pass_type': pass_type,
                     'file_MB': group['file_MB'].values[sort_idx],
                     'vmaf_mean': group['vmaf_mean'].values[sort_idx],
-                    'crf': group['crf'].values[sort_idx]
+                    'crf': group['crf'].values[sort_idx],
+                    'file_bytes': group['file_bytes'].values[sort_idx]
                 })
                 legend_labels.append(f"{group_label} | {pass_type}")
 
@@ -123,41 +143,141 @@ def plot_combined_bd_class_dim(
     marker_iter = itertools.cycle(marker_cycle)
 
     fig, ax = plt.subplots(figsize=(14, 9))
-    for i, pdict in enumerate(plot_data):
-        color = colors[i]
-        marker = next(marker_iter)
-        # Draw lines between points
-        ax.plot(
-            pdict['file_MB'],
-            pdict['vmaf_mean'],
-            color=color,
-            marker=marker,
-            linestyle='-',
-            linewidth=2,
-            markersize=8,
-            label=legend_labels[i],
-            alpha=0.85
-        )
-        # Draw scatter points (for emphasis)
-        ax.scatter(
-            pdict['file_MB'],
-            pdict['vmaf_mean'],
-            color=color,
-            marker=marker,
-            edgecolor='black',
-            s=80,
-            alpha=0.95
-        )
-        # Label each point with its CRF value in white with a black outline for contrast
-        for x, y, crf in zip(pdict['file_MB'], pdict['vmaf_mean'], pdict['crf']):
-            txt = ax.text(
-                x, y, str(int(crf)),
-                fontsize=8, ha='left', va='bottom', color='white', zorder=10
+
+    if use_leader_lines:
+        all_texts = []
+        all_label_points = []
+        all_label_colors = []
+
+        for i, pdict in enumerate(plot_data):
+            color = colors[i]
+            marker = next(marker_iter)
+            ax.plot(
+                pdict['file_MB'],
+                pdict['vmaf_mean'],
+                color=color,
+                marker=marker,
+                linestyle='-',
+                linewidth=2,
+                markersize=8,
+                label=legend_labels[i],
+                alpha=0.85
             )
-            txt.set_path_effects([
-                path_effects.Stroke(linewidth=1.5, foreground='black'),
-                path_effects.Normal()
-            ])
+            ax.scatter(
+                pdict['file_MB'],
+                pdict['vmaf_mean'],
+                color=color,
+                marker=marker,
+                edgecolor='black',
+                s=80,
+                alpha=0.95
+            )
+            x = np.array(pdict['file_MB'])
+            y = np.array(pdict['vmaf_mean'])
+            nx, ny = compute_normals(x, y)
+            texts = []
+            label_points = []
+            label_colors = []
+            for idx, (xi, yi, nxi, nyi, crf, file_bytes) in enumerate(zip(x, y, nx, ny, pdict['crf'], pdict['file_bytes'])):
+                label_parts = []
+                if show_crf:
+                    label_parts.append(f"{int(crf)}")
+                if show_filesize:
+                    label_parts.append(f"({format_bytes(file_bytes)})")
+                label_str = " ".join(label_parts)
+                lx = xi + normal_offset * nxi
+                ly = yi + normal_offset * nyi
+                txt = ax.text(
+                    lx, ly, label_str,
+                    fontsize=8, ha='left', va='bottom', color=color, zorder=10
+                )
+                txt.set_path_effects([
+                    path_effects.Stroke(linewidth=1.5, foreground='black'),
+                    path_effects.Normal()
+                ])
+                texts.append(txt)
+                label_points.append((xi, yi))
+                label_colors.append(color)
+            # Per-group adjustText to minimize intra-group overlap and line crossings
+            adjust_text(
+                texts,
+                ax=ax,
+                expand_points=(1.2, 1.2),
+                expand_text=(1.2, 1.2),
+                force_text=(0.5, 0.5),
+                only_move={'points':'none', 'text':'xy'},
+                arrowprops=None
+            )
+            all_texts.extend(texts)
+            all_label_points.extend(label_points)
+            all_label_colors.extend(label_colors)
+
+        # Global adjustText pass to resolve any remaining inter-group overlaps
+        adjust_text(
+            all_texts,
+            ax=ax,
+            expand_points=(1.1, 1.1),
+            expand_text=(1.1, 1.1),
+            force_text=(0.2, 0.2),
+            only_move={'points':'none', 'text':'xy'},
+            arrowprops=None
+        )
+        # Draw leader lines in the correct color, from point to label
+        for txt, (x, y), color in zip(all_texts, all_label_points, all_label_colors):
+            label_pos = txt.get_position()
+            ax.plot([x, label_pos[0]], [y, label_pos[1]], color=color, lw=1, alpha=0.8, zorder=9)
+    else:
+        for i, pdict in enumerate(plot_data):
+            color = colors[i]
+            marker = next(marker_iter)
+            ax.plot(
+                pdict['file_MB'],
+                pdict['vmaf_mean'],
+                color=color,
+                marker=marker,
+                linestyle='-',
+                linewidth=2,
+                markersize=8,
+                label=legend_labels[i],
+                alpha=0.85
+            )
+            ax.scatter(
+                pdict['file_MB'],
+                pdict['vmaf_mean'],
+                color=color,
+                marker=marker,
+                edgecolor='black',
+                s=80,
+                alpha=0.95
+            )
+            for x, y, crf, file_bytes in zip(pdict['file_MB'], pdict['vmaf_mean'], pdict['crf'], pdict['file_bytes']):
+                label_parts = []
+                if show_crf:
+                    label_parts.append(f"{int(crf)}")
+                if show_filesize:
+                    label_parts.append(f"({format_bytes(file_bytes)})")
+                label_str = " ".join(label_parts)
+                txt = ax.text(
+                    x + 0.03, y + 0.03, label_str,
+                    fontsize=8, ha='left', va='bottom', color=color, zorder=10
+                )
+                txt.set_path_effects([
+                    path_effects.Stroke(linewidth=1.5, foreground='black'),
+                    path_effects.Normal()
+                ])
+
+    # X-axis and Y-axis formatting for more subdivisions and less left padding
+    ax.xaxis.set_major_locator(mticker.MaxNLocator(nbins=16))
+    ax.xaxis.set_minor_locator(mticker.AutoMinorLocator(2))
+    ax.grid(which='major', axis='x', linestyle='-', alpha=0.5)
+    ax.grid(which='minor', axis='x', linestyle=':', alpha=0.3)
+    ax.yaxis.set_major_locator(mticker.MaxNLocator(nbins=12))
+    ax.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
+    ax.grid(which='major', axis='y', linestyle='-', alpha=0.5)
+    ax.grid(which='minor', axis='y', linestyle=':', alpha=0.3)
+    ax.margins(x=0)
+    plt.subplots_adjust(left=0.10)
+    ax.set_xlim(left=0)
 
     ax.set_xlabel('File Size (MB)')
     ax.set_ylabel('VMAF Mean')
@@ -215,5 +335,8 @@ if __name__ == "__main__":
     plot_combined_bd_class_dim(
         file_settings_list=file_structs,
         output_filename='combined_bd_graph.png',
-        show_plot=True
+        show_plot=True,
+        use_leader_lines=True,
+        show_crf=False,
+        show_filesize=True
     )
