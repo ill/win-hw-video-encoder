@@ -3,17 +3,17 @@ import plotBytesVsVMAF
 def highGraphs():
     # Define your settings using the classes
     file_structs = [
-        plotBytesVsVMAF.FileSettings(
-            csv_file='Out/CRF/sonichd/sonichd-CRF.csv',
-            dims={
-                (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-            },
-            label='SonicHD',
-            show_crf=True,
-        ),
+        # plotBytesVsVMAF.FileSettings(
+        #     csv_file='Out/CRF/sonichd/sonichd-CRF.csv',
+        #     dims={
+        #         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #     },
+        #     label='SonicHD',
+        #     show_crf=True,
+        # ),
         # plotBytesVsVMAF.FileSettings(
         #     csv_file='Out/CRF/badminton/badminton-CRF.csv',
         #     dims={
@@ -24,17 +24,30 @@ def highGraphs():
         #     label='badminton',
         #     show_crf=True,
         # ),
-        # plotBytesVsVMAF.FileSettings(
-        #     csv_file='Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
-        #     dims={
-        #         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-        #     },
-        #     label='1440p-av1-42sec',
-        #     show_crf=True,
-        # ),
+        plotBytesVsVMAF.FileSettings(
+            csv_file='Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
+            dims={
+                (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+            },
+            label='1440p-av1-42sec',
+            show_crf=True,
+        ),
+
+        plotBytesVsVMAF.FileSettings(
+            csv_file='Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
+            dims={
+                (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+            },
+            label='1440p-av1-42sec',
+            show_crf=True,
+        ),
+
         # plotBytesVsVMAF.FileSettings(
         #     csv_file='Out/CRF/steal-a-brainrot/steal-a-brainrot-CRF.csv',
         #     dims={
@@ -57,31 +70,31 @@ def highGraphs():
         #     show_crf=True,
         # ),
 
-        plotBytesVsVMAF.FileSettings(
-            csv_file='Out/CQGoogleGSunExperiment/sonichd/sonichd-CQGoogleGSunExperiment.csv',
-            dims={
-                (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-                # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-                # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-                # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
-            },
-            label='SonicHD-Gsun',
-            show_gsun=True,
-            show_crf=False,
-        ),
-
         # plotBytesVsVMAF.FileSettings(
-        #     csv_file='Out/CQGoogleGSunExperiment/1440p-av1-42sec/1440p-av1-42sec-CQGoogleGSunExperiment.csv',
+        #     csv_file='Out/CQGoogleGSunExperiment/sonichd/sonichd-CQGoogleGSunExperiment.csv',
         #     dims={
         #         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+        #         # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #         # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #         # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
         #     },
-        #     label='1440p-av1-42sec-Gsun',
+        #     label='SonicHD-Gsun',
         #     show_gsun=True,
         #     show_crf=False,
         # ),
+
+        plotBytesVsVMAF.FileSettings(
+            csv_file='Out/CQGoogleGSunExperiment/1440p-av1-42sec/1440p-av1-42sec-CQGoogleGSunExperiment.csv',
+            dims={
+                (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+                (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+                (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+                (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+            },
+            label='1440p-av1-42sec-Gsun',
+            show_gsun=True,
+            show_crf=False,
+        ),
 
         # plotBytesVsVMAF.FileSettings(
         #     csv_file='Out/CQGoogleGSunExperiment/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CQGoogleGSunExperiment.csv',
@@ -96,8 +109,18 @@ def highGraphs():
         # ),
     ]
 
+    file_structs_by_res = [
+        plotBytesVsVMAF.FileSettingsByResolution(
+            csv_file='Out/CQGoogle/sonichd/sonichd-CQGoogle.csv',
+            label='SonicHD-Google',
+            enable_1pass=True,
+            enable_2pass=False,
+        )
+    ]
+
     plotBytesVsVMAF.plot_combined_bd_class_dim(
         file_settings_list=file_structs,
+        file_settings_by_resolution_list=file_structs_by_res,
         output_filename='combined_bd_graph.png',
         show_plot=True,
         use_leader_lines=False,

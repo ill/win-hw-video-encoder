@@ -15,8 +15,8 @@ class CQGoogleGSunExperiment(CQExperiment.CQExperiment):
     def run_experiment_on_resolution(self, resolution: tuple[int, int]):
         gsuns = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5]
 
-        one_pass_encoding = True
-        two_pass_encoding = False
+        one_pass_encoding = False
+        two_pass_encoding = True
 
         print(f'{Util.HEADER}\nSweeping Values Between')
         print(f'\tgsuns: {min(gsuns)} - {max(gsuns)}')
@@ -32,6 +32,7 @@ class CQGoogleGSunExperiment(CQExperiment.CQExperiment):
                 cq_params.min_bitrate_kbps = int(float(target_bitrate) * 0.5)
                 cq_params.max_bitrate_kbps = int(float(target_bitrate) * 1.5)
                 cq_params.speed_single_pass = 0
+                cq_params.threads = 16
 
                 self.run_experiment_on_cq_params_one_pass(gsun=gsun,
                                                           resolution=resolution,
@@ -45,6 +46,7 @@ class CQGoogleGSunExperiment(CQExperiment.CQExperiment):
                 cq_params.max_bitrate_kbps = int(float(target_bitrate) * 1.5)
                 cq_params.speed_pass1 = 0
                 cq_params.speed_pass2 = 0
+                cq_params.threads = 16
 
                 self.run_experiment_on_cq_params_two_pass(gsun=gsun,
                                                           resolution=resolution,

@@ -144,7 +144,10 @@ def plot_frame_sizes_by_file(video_files):
 
 if __name__ == "__main__":
     video_files = [
-        "Out/CRF/sonichd/sonichd-CRF-crf-33-w-1920-h-888-fps--1-2Pass.webm",
-        "Out/CQGoogleGSunExperiment/sonichd/sonichd-CQGoogleGSunExperiment-crf-31-bp-12531k-mnbp-6265k-mxbp-18796k-w-1920-h-888-fps-30-t-4-tc-2-2Pass-s1-0-s2-0.webm",
+        #"Out/CRF/sonichd/sonichd-CRF-crf-33-w-1920-h-888-fps--1-2Pass.webm",
+        #"Out/CQGoogleGSunExperiment/sonichd/sonichd-CQGoogleGSunExperiment-crf-31-bp-12531k-mnbp-6265k-mxbp-18796k-w-1920-h-888-fps-30-t-4-tc-2-2Pass-s1-0-s2-0.webm",
+
+        "Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF-crf-39-w-1920-h-1080-fps--1-2Pass.webm",
+        "Out/CQGoogleGSunExperiment/1440p-av1-42sec/1440p-av1-42sec-CQGoogleGSunExperiment-crf-31-bp-3265k-mnbp-1632k-mxbp-4897k-w-1920-h-1080-fps-30-t-4-tc-2-2Pass-s1-0-s2-0.webm",
     ]
     df = plot_frame_sizes_by_file(video_files)
