@@ -6,7 +6,7 @@ import matplotlib.ticker as mticker
 import itertools
 import numpy as np
 import matplotlib.patheffects as path_effects
-from adjustText import adjust_text  # pip install adjustText
+from adjustText import adjust_text  # kept for parity
 
 # ======================================================
 # Data classes & utilities
@@ -50,37 +50,28 @@ def format_bytes(num_bytes: float):
     return f"{num_bytes:.1f} PB"
 
 def compute_normals(x, y):
-    x = np.asarray(x)
-    y = np.asarray(y)
+    # Kept for parity with older versions (not used for no-offset labels)
+    x = np.asarray(x); y = np.asarray(y)
     n = len(x)
-    dx = np.zeros(n)
-    dy = np.zeros(n)
+    dx = np.zeros(n); dy = np.zeros(n)
     if n > 1:
         dx[1:-1] = (x[2:] - x[:-2]) / 2
         dy[1:-1] = (y[2:] - y[:-2]) / 2
-        dx[0] = x[1] - x[0]
-        dy[0] = y[1] - y[0]
-        dx[-1] = x[-1] - x[-2]
-        dy[-1] = y[-1] - y[-2]
-    norm = np.sqrt(dx**2 + dy**2)
-    norm[norm == 0] = 1
+        dx[0] = x[1] - x[0]; dy[0] = y[1] - y[0]
+        dx[-1] = x[-1] - x[-2]; dy[-1] = y[-1] - y[-2]
+    norm = np.sqrt(dx**2 + dy**2); norm[norm == 0] = 1
     return -dy / norm, dx / norm
 
 def pick_bitrate_unit(values: np.ndarray) -> Tuple[float, str]:
-    """Pick a consistent bitrate unit for a row. Returns (scale_divisor, unit_label)."""
     if values is None or len(values) == 0 or np.all(np.isnan(values)):
         return 1.0, "bps"
     vmax = float(np.nanmax(values))
-    if vmax >= 1e9:
-        return 1e9, "Gbps"
-    if vmax >= 1e6:
-        return 1e6, "Mbps"
-    if vmax >= 1e3:
-        return 1e3, "Kbps"
+    if vmax >= 1e9: return 1e9, "Gbps"
+    if vmax >= 1e6: return 1e6, "Mbps"
+    if vmax >= 1e3: return 1e3, "Kbps"
     return 1.0, "bps"
 
 def clean_xticks(ax) -> np.ndarray:
-    """Return unique tick locations within xlim to avoid a duplicate rightmost tick."""
     xmin, xmax = ax.get_xlim()
     ticks = np.asarray(ax.get_xticks(), dtype=float)
     eps = (xmax - xmin) * 1e-9 if xmax > xmin else 1e-9
@@ -101,8 +92,9 @@ def plot_combined_bd_class_dim(
     file_settings_list: List[FileSettings],
     output_filename: str,
     show_plot: bool = False,
-    use_leader_lines: bool = True,   # kept for API parity; ignored for text placement now
-    normal_offset: float = 0.18      # kept for API parity; not used for text placement
+    # Restored for API compatibility:
+    use_leader_lines: bool = True,
+    normal_offset: float = 0.18
 ):
     marker_cycle = ['o', 's', 'D', '^', 'v', 'P', 'X', '*', '<', '>', 'h', 'H', 'd', 'p', '|', '_', '+', 'x', '1', '2', '3', '4']
 
@@ -118,7 +110,7 @@ def plot_combined_bd_class_dim(
             df['file_MB'] = df['file_bytes'] / 1_048_576
             df['crf'] = pd.to_numeric(df['crf'], errors='coerce')
 
-            # parse bitrate (already in CSV per your data)
+            # parse bitrate if present
             if 'actual_bitrate_bps' in df.columns:
                 df['actual_bitrate_bps'] = (
                     df['actual_bitrate_bps'].astype(str).str.replace(',', '', regex=False)
@@ -138,12 +130,9 @@ def plot_combined_bd_class_dim(
 
             # pass type detection
             def pass_type(x):
-                if pd.isna(x):
-                    return '1-pass'
+                if pd.isna(x): return '1-pass'
                 val = str(x).strip().lower()
-                if val in ('n/a', 'na', ''):
-                    return '1-pass'
-                return '2-pass'
+                return '1-pass' if val in ('n/a', 'na', '') else '2-pass'
             df['pass_type'] = df['encoding_time_pass1_s'].apply(pass_type)
 
             # prepare dims (wildcard support)
@@ -152,55 +141,40 @@ def plot_combined_bd_class_dim(
                 unique_dims = set(zip(df['width'], df['height']))
                 dims = {dim: DimensionSettings() for dim in unique_dims}
 
-            # if fallback requested, override dims to "all"
             if allow_fallback_all:
                 dims = {(-1, -1): DimensionSettings(
                     enable_1pass=True, enable_2pass=True, crf_range=None, gsun_range=None
                 )}
 
-            # iterate dims and pass types
             for (w, h), d in dims.items():
                 if w >= 0 and h >= 0:
                     sub = df[(df['width'] == w) & (df['height'] == h)]
                     group_label = f"{label} | {w}x{h}"
                 elif w >= 0 and h < 0:
-                    sub = df[df['width'] == w]
-                    group_label = f"{label} | width={w}"
+                    sub = df[df['width'] == w]; group_label = f"{label} | width={w}"
                 elif w < 0 and h >= 0:
-                    sub = df[df['height'] == h]
-                    group_label = f"{label} | height={h}"
+                    sub = df[df['height'] == h]; group_label = f"{label} | height={h}"
                 else:
-                    sub = df
-                    group_label = f"{label} | all"
+                    sub = df; group_label = f"{label} | all"
 
-                # apply CRF range if provided
                 if d.crf_range is not None:
                     lo, hi = d.crf_range
                     sub = sub[(sub['crf'] >= lo) & (sub['crf'] <= hi)]
 
-                # apply GSUN range if provided (each bound optional)
                 if d.gsun_range is not None:
                     gmin, gmax = d.gsun_range
-                    if gmin is not None:
-                        sub = sub[sub['gsun'] >= gmin]
-                    if gmax is not None:
-                        sub = sub[sub['gsun'] <= gmax]
+                    if gmin is not None: sub = sub[sub['gsun'] >= gmin]
+                    if gmax is not None: sub = sub[sub['gsun'] <= gmax]
 
-                # pass filter
                 pass_types: List[str] = []
-                if d.enable_1pass:
-                    pass_types.append('1-pass')
-                if d.enable_2pass:
-                    pass_types.append('2-pass')
-
+                if d.enable_1pass: pass_types.append('1-pass')
+                if d.enable_2pass: pass_types.append('2-pass')
                 sub = sub[sub['pass_type'].isin(pass_types)]
-                if sub.empty:
-                    continue
+                if sub.empty: continue
 
                 for pt in pass_types:
                     g = sub[sub['pass_type'] == pt].sort_values('file_MB')
-                    if g.empty:
-                        continue
+                    if g.empty: continue
                     plot_data.append({
                         'file': label,
                         'dim': (w, h),
@@ -210,7 +184,6 @@ def plot_combined_bd_class_dim(
                         'crf': g['crf'].values,
                         'bitrate': g['actual_bitrate_bps'].values,
                         'gsun': g['gsun'].values,
-                        # per-file label toggles snapshot
                         'show_crf': fs.show_crf,
                         'show_gsun': fs.show_gsun,
                     })
@@ -237,24 +210,15 @@ def plot_combined_bd_class_dim(
     marker_iter = itertools.cycle(marker_cycle)
 
     for i, pdict in enumerate(plot_data):
-        color = colors[i]
-        marker = next(marker_iter)
+        color = colors[i]; marker = next(marker_iter)
         ax.plot(
-            pdict['file_MB'],
-            pdict['vmaf'],
-            color=color,
-            marker=marker,
-            linestyle='-',
-            linewidth=2,
-            markersize=7,
-            label=legend_labels[i],
-            alpha=0.9
+            pdict['file_MB'], pdict['vmaf'],
+            color=color, marker=marker, linestyle='-',
+            linewidth=2, markersize=7, label=legend_labels[i], alpha=0.9
         )
 
-        # Per-dot labels (comma-separated, numbers only), aligned exactly at the dot (no offset)
-        for xi, yi, crf_val, gsun_val in zip(
-            pdict['file_MB'], pdict['vmaf'], pdict['crf'], pdict['gsun']
-        ):
+        # Labels directly on the dots (no offset)
+        for xi, yi, crf_val, gsun_val in zip(pdict['file_MB'], pdict['vmaf'], pdict['crf'], pdict['gsun']):
             parts = []
             if pdict.get('show_crf', False) and pd.notna(crf_val):
                 parts.append(f"{int(crf_val)}")
@@ -263,7 +227,6 @@ def plot_combined_bd_class_dim(
             if not parts:
                 continue
             label_str = ", ".join(parts)
-            # place text exactly at the data point; no leader lines when labels are not offset
             txt = ax.text(
                 xi, yi, label_str,
                 fontsize=8, ha='center', va='center', color=color, zorder=10
@@ -272,7 +235,6 @@ def plot_combined_bd_class_dim(
                 path_effects.Stroke(linewidth=1.4, foreground='black'),
                 path_effects.Normal()
             ])
-            # No leader line drawn because there is no displacement
 
     # ---------- Style ----------
     ax.set_xlabel("File Size (MB)")
@@ -293,17 +255,15 @@ def plot_combined_bd_class_dim(
     tick_locs = clean_xticks(ax)
 
     # ---------- Reserve space and place the bitrate panel below the main axis ----------
-    panel_h_fig = 0.12 + 0.06 * (n_files - 1)  # panel height scales with number of files
-    gap_fig = 0.05                              # extra gap between main axis and panel
+    panel_h_fig = 0.12 + 0.06 * (n_files - 1)
+    gap_fig = 0.05
     plt.subplots_adjust(left=0.10, bottom=max(0.15, panel_h_fig + gap_fig + 0.06))
 
-    # Recompute main axis position after subplots_adjust
-    axpos = ax.get_position()  # in figure coords (x0, y0, x1, y1)
+    axpos = ax.get_position()
     panel_rect = [axpos.x0, max(0.02, axpos.y0 - panel_h_fig - gap_fig), axpos.width, panel_h_fig]
     strip = plt.gcf().add_axes(panel_rect)
     xmin, xmax = ax.get_xlim()
-    strip.set_xlim([xmin, xmax])
-    strip.set_ylim(0, n_files)
+    strip.set_xlim([xmin, xmax]); strip.set_ylim(0, n_files)
     strip.axis("off")
 
     # Header separator
@@ -312,26 +272,21 @@ def plot_combined_bd_class_dim(
     # ---------- Multi-row bitrate panel (tick-aligned) ----------
     for row_idx, fname in enumerate(ordered_files):
         y_center = n_files - 1 - row_idx + 0.5
-        # subtle row rule
         strip.plot([xmin, xmax], [y_center, y_center], lw=0.4, alpha=0.25)
 
-        # Collect all bitrates for this file to pick a stable unit
         file_series = [p for p in plot_data if p['file'] == fname]
         all_vals = np.concatenate(
             [s['bitrate'] for s in file_series if s['bitrate'] is not None and len(s['bitrate']) > 0]
         ) if file_series else np.array([])
         scale, unit = pick_bitrate_unit(all_vals)
 
-        # Row label with units
         strip.text(xmin, y_center + 0.35, f"{fname}: Actual bitrate ({unit})",
                    ha='left', va='center', fontsize=8)
 
-        # For each x tick, find the nearest point from each series; average their bitrates
         for tick in tick_locs:
             candidates = []
             for series in file_series:
-                xs = series['file_MB']
-                bs = series['bitrate']
+                xs = series['file_MB']; bs = series['bitrate']
                 if len(xs) == 0 or len(bs) == 0 or np.all(np.isnan(bs)):
                     continue
                 idx_min = int(np.argmin(np.abs(xs - tick)))
@@ -350,151 +305,3 @@ def plot_combined_bd_class_dim(
     if show_plot:
         plt.show()
     plt.close(plt.gcf())
-
-
-
-
-
-# Example usage:
-# Plot all widths:
-# plot_bd('your_file.csv', min_crf=18, max_crf=42)
-# Plot a specific width:
-# plot_bd('your_file.csv', width=1920, min_crf=18, max_crf=42)
-
-#plot_bd('Out/CRF/sonichd/sonichd-CRF.csv', min_crf=18, max_crf=42)
-
-#plot_bd('Out/CRF/sonichd/sonichd-CRF.csv', min_crf=18, max_crf=42)
-
-
-def highGraphs():
-    # Define your settings using the classes
-    file_structs = [
-        # FileSettings(
-        #     csv_file='Out/CRF/sonichd/sonichd-CRF.csv',
-        #     dims={
-        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-        #     },
-        #     label='SonicHD'
-        # ),
-        # FileSettings(
-        #     csv_file='Out/CRF/badminton/badminton-CRF.csv',
-        #     dims={
-        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-        #     },
-        #     label='badminton'
-        # ),
-        # FileSettings(
-        #     csv_file='Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
-        #     dims={
-        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-        #     },
-        #     label='1440p-av1-42sec'
-        # ),
-        # FileSettings(
-        #     csv_file='Out/CRF/steal-a-brainrot/steal-a-brainrot-CRF.csv',
-        #     dims={
-        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (960, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54)),
-        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-        #     },
-        #     label='steal-a-brainrot'
-        # ),
-        FileSettings(
-            csv_file='Out/CQGoogleGSunExperiment/bipbop15_270_mono/bipbop15_270_mono-CQGoogleGSunExperiment.csv',
-            dims={
-                (480, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (160, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-            },
-            label='bipbop15_270_mono',
-            show_gsun=True,
-            show_crf=True,
-        ),
-    ]
-
-    plot_combined_bd_class_dim(
-        file_settings_list=file_structs,
-        output_filename='combined_bd_graph.png',
-        show_plot=True,
-        use_leader_lines=False,
-    )
-
-def lowMotionGraphs():
-    # Define your settings using the classes
-    file_structs = [
-        FileSettings(
-            csv_file='Out--Latest/CRF-Backup/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CRF.csv',
-            dims={
-                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(8, 42))
-            },
-            label='Halo_NoMotion_20sec_1080p'
-        )
-    ]
-
-    plot_combined_bd_class_dim(
-        file_settings_list=file_structs,
-        output_filename='combined_low_motion_bd_graph.png',
-        show_plot=True,
-        use_leader_lines=False,
-    )
-
-def highGraphs_gsun():
-    # Define your settings using the classes
-    file_structs = [
-        FileSettings(
-            csv_file='Out/CQGoogleGSunExperiment/bipbop15_270_mono/bipbop15_270_mono-CQGoogleGSunExperiment.csv',
-            dims={
-                (480, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (160, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-            },
-            label='bipbop15_270_mono'
-        ),
-        # FileSettings(
-        #     csv_file='Out/CRF/badminton/badminton-CRF.csv',
-        #     dims={
-        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-        #     },
-        #     label='badminton'
-        # ),
-        # FileSettings(
-        #     csv_file='Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
-        #     dims={
-        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-        #     },
-        #     label='1440p-av1-42sec'
-        # ),
-        # FileSettings(
-        #     csv_file='Out/CRF/steal-a-brainrot/steal-a-brainrot-CRF.csv',
-        #     dims={
-        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (960, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54)),
-        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-        #     },
-        #     label='steal-a-brainrot'
-        # ),
-    ]
-
-    plot_combined_bd_class_dim(
-        file_settings_list=file_structs,
-        output_filename='combined_bd_graph.png',
-        show_plot=True,
-        use_leader_lines=False,
-    )
-
-if __name__ == "__main__":
-    highGraphs()
-
-    #lowMotionGraphs()
-
-    #sonichdGraphs()
