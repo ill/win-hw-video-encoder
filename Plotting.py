@@ -8,9 +8,9 @@ plotBytesVsVMAF.FileSettings(
     csv_file='Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
     dims={
         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54)),
-        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54))
+        # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54)),
+        # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54))
     },
     label='1440p-av1-42sec',
     show_crf=True,
@@ -120,10 +120,146 @@ plotBytesVsVMAF.FileSettings(
 ))
 
 #########
-# CQGSunBruteForceSweep
+# CQGoogleGSun
+
+_1440p_av1_42sec_CQGoogleGSun = (
+plotBytesVsVMAF.FileSettings(
+    csv_file='Out/CQGoogleGSunExperiment/1440p-av1-42sec/1440p-av1-42sec-CQGoogleGSunExperiment.csv',
+    dims={
+        (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+    },
+    label='1440p-av1-42sec-Gsun',
+    show_gsun=True,
+    show_crf=True,
+))
+
+badminton_CQGoogleGSun = (
+plotBytesVsVMAF.FileSettings(
+    csv_file='Out/CQGoogleGSunExperiment/badminton/badminton-CQGoogleGSunExperiment.csv',
+    dims={
+        (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+    },
+    label='badminton-Gsun',
+    show_gsun=True,
+    show_crf=False,
+))
+
+bipbop_15_270_mono_CQGoogleGSun = (
+plotBytesVsVMAF.FileSettings(
+    csv_file='Out/CQGoogleGSunExperiment/bipbop15_270_mono/bipbop15_270_mono-CQGoogleGSunExperiment.csv',
+    dims={
+        (480, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        (160, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+    },
+    label='bipbop15_270_mono-Gsun',
+    show_gsun=True,
+    show_crf=True,
+))
+
+Halo_NoMotion_20sec_1080p_CQGoogleGSun = (
+plotBytesVsVMAF.FileSettings(
+    csv_file='Out/CQGoogleGSunExperiment/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CQGoogleGSunExperiment.csv',
+    dims={
+        (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #(1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #(960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #(640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+    },
+    label='Halo_NoMotion_20sec_1080p-Gsun',
+    show_gsun=True,
+    show_crf=False,
+))
+
+sonichd_CQGoogleGSun = (
+plotBytesVsVMAF.FileSettings(
+    csv_file='Out/CQGoogleGSunExperiment/sonichd/sonichd-CQGoogleGSunExperiment.csv',
+    dims={
+        (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+    },
+    label='SonicHD-Gsun',
+    show_gsun=True,
+    show_crf=False,
+))
 
 #########
-# CQGoogleGSun
+# CQGSunBruteForceSweep
+
+_1440p_av1_42sec_CQGSunBruteForceSweep = (
+plotBytesVsVMAF.FileSettings(
+    csv_file='Out/CQGSunBruteForceSweep/1440p-av1-42sec/1440p-av1-42sec-CQGSunBruteForceSweep.csv',
+    dims={
+        (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+    },
+    label='1440p-av1-42sec-0CRF',
+    show_gsun=True,
+    show_crf=True,
+))
+
+badminton_CQGSunBruteForceSweep = (
+plotBytesVsVMAF.FileSettings(
+    csv_file='Out/CQGSunBruteForceSweep/badminton/badminton-CQGSunBruteForceSweep.csv',
+    dims={
+        (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+    },
+    label='badminton-0CRF',
+    show_gsun=True,
+    show_crf=False,
+))
+
+bipbop_15_270_mono_CQGSunBruteForceSweep = (
+plotBytesVsVMAF.FileSettings(
+    csv_file='Out/CQGSunBruteForceSweep/bipbop15_270_mono/bipbop15_270_mono-CQGSunBruteForceSweep.csv',
+    dims={
+        (480, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        (160, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+    },
+    label='bipbop15_270_mono-0CRF',
+    show_gsun=True,
+    show_crf=True,
+))
+
+Halo_NoMotion_20sec_1080p_CQGSunBruteForceSweep = (
+plotBytesVsVMAF.FileSettings(
+    csv_file='Out/CQGSunBruteForceSweep/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CQGSunBruteForceSweep.csv',
+    dims={
+        (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #(1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #(960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #(640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+    },
+    label='Halo_NoMotion_20sec_1080p-0CRF',
+    show_gsun=True,
+    show_crf=False,
+))
+
+sonichd_CQGSunBruteForceSweep = (
+plotBytesVsVMAF.FileSettings(
+    csv_file='Out/CQGSunBruteForceSweep/sonichd/sonichd-CQGSunBruteForceSweep.csv',
+    dims={
+        (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+    },
+    label='SonicHD-0CRF',
+    show_gsun=True,
+    show_crf=False,
+))
 
 #########
 # CQGoogle
@@ -131,71 +267,29 @@ plotBytesVsVMAF.FileSettings(
 def graphsCombo():
     # Define your settings using the classes
     file_structs = [
-        #_1440p_av1_42sec_CRF,
-        badminton_CRF,
-        # bipbop_15_270_mono_CRF,
-        # Halo_Montage_1080p_CRF,
-        # Halo_NoMotion_20sec_1080p_CRF,
-        # ios_native_recorder_CRF,
-        # sonichd_CRF,
-        # steal_a_brainrot_CRF,
-        # strongest_battlegrounds_mac_1440_CRF,
+        _1440p_av1_42sec_CRF,
+        #badminton_CRF,
+        #bipbop_15_270_mono_CRF,
+        #Halo_Montage_1080p_CRF,
+        #Halo_NoMotion_20sec_1080p_CRF,
+        #ios_native_recorder_CRF,
+        #sonichd_CRF,
+        #steal_a_brainrot_CRF,
+        #strongest_battlegrounds_mac_1440_CRF,
+
+        _1440p_av1_42sec_CQGoogleGSun,
+        #badminton_CQGoogleGSun,
+        #bipbop_15_270_mono_CQGoogleGSun,
+        #Halo_NoMotion_20sec_1080p_CQGoogleGSun,
+        #sonichd_CQGoogleGSun,
+
+        #_1440p_av1_42sec_CQGSunBruteForceSweep,
+        #badminton_CQGSunBruteForceSweep,
+        #bipbop_15_270_mono_CQGSunBruteForceSweep,
+        #Halo_NoMotion_20sec_1080p_CQGSunBruteForceSweep,
+        #sonichd_CQGSunBruteForceSweep,
 
 
-
-
-
-
-
-
-        # plotBytesVsVMAF.FileSettings(
-        #     csv_file='Out/CQGoogleGSunExperiment/bipbop15_270_mono/bipbop15_270_mono-CQGoogleGSunExperiment.csv',
-        #     dims={
-        #         (480, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (160, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #     },
-        #     label='bipbop15_270_mono',
-        #     show_gsun=True,
-        #     show_crf=True,
-        # ),
-
-        # plotBytesVsVMAF.FileSettings(
-        #     csv_file='Out/CQGoogleGSunExperiment/sonichd/sonichd-CQGoogleGSunExperiment.csv',
-        #     dims={
-        #         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
-        #     },
-        #     label='SonicHD-Gsun',
-        #     show_gsun=True,
-        #     show_crf=False,
-        # ),
-
-        # plotBytesVsVMAF.FileSettings(
-        #     csv_file='Out/CQGoogleGSunExperiment/1440p-av1-42sec/1440p-av1-42sec-CQGoogleGSunExperiment.csv',
-        #     dims={
-        #         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
-        #     },
-        #     label='1440p-av1-42sec-Gsun',
-        #     show_gsun=True,
-        #     show_crf=False,
-        # ),
-
-        # plotBytesVsVMAF.FileSettings(
-        #     csv_file='Out/CQGoogleGSunExperiment/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CQGoogleGSunExperiment.csv',
-        #     dims={
-        #         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        #         # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
-        #     },
-        #     label='Halo_NoMotion_20sec_1080p-Gsun',
-        #     show_gsun=True,
-        # ),
     ]
 
     file_structs_by_res = [
