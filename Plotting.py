@@ -187,7 +187,7 @@ plotBytesVsVMAF.FileSettings(
 #########
 # CQGSunBruteForceSweep
 
-_1440p_av1_42sec_CQGSunBruteForceSweep = (
+_1440p_av1_42sec_0CRF_GSUN = (
 plotBytesVsVMAF.FileSettings(
     csv_file='Out/CQGSunBruteForceSweep/1440p-av1-42sec/1440p-av1-42sec-CQGSunBruteForceSweep.csv',
     dims={
@@ -200,7 +200,7 @@ plotBytesVsVMAF.FileSettings(
     show_gsun=True,
 ))
 
-badminton_CQGSunBruteForceSweep = (
+badminton_0CRF_GSUN = (
 plotBytesVsVMAF.FileSettings(
     csv_file='Out/CQGSunBruteForceSweep/badminton/badminton-CQGSunBruteForceSweep.csv',
     dims={
@@ -213,7 +213,7 @@ plotBytesVsVMAF.FileSettings(
     show_gsun=True,
 ))
 
-bipbop_15_270_mono_CQGSunBruteForceSweep = (
+bipbop_15_270_mono_0CRF_GSUN = (
 plotBytesVsVMAF.FileSettings(
     csv_file='Out/CQGSunBruteForceSweep/bipbop15_270_mono/bipbop15_270_mono-CQGSunBruteForceSweep.csv',
     dims={
@@ -224,7 +224,7 @@ plotBytesVsVMAF.FileSettings(
     show_gsun=True,
 ))
 
-Halo_NoMotion_20sec_1080p_CQGSunBruteForceSweep = (
+Halo_NoMotion_20sec_1080p_0CRF_GSUN = (
 plotBytesVsVMAF.FileSettings(
     csv_file='Out/CQGSunBruteForceSweep/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CQGSunBruteForceSweep.csv',
     dims={
@@ -237,7 +237,7 @@ plotBytesVsVMAF.FileSettings(
     show_gsun=True,
 ))
 
-sonichd_CQGSunBruteForceSweep = (
+sonichd_0CRF_GSUN = (
 plotBytesVsVMAF.FileSettings(
     csv_file='Out/CQGSunBruteForceSweep/sonichd/sonichd-CQGSunBruteForceSweep.csv',
     dims={
@@ -352,11 +352,11 @@ def graphsCombo():
         #Halo_NoMotion_20sec_1080p_CQGoogleGSun,
         #sonichd_CQGoogleGSun,
 
-        _1440p_av1_42sec_CQGSunBruteForceSweep,
-        #badminton_CQGSunBruteForceSweep,
-        #bipbop_15_270_mono_CQGSunBruteForceSweep,
-        #Halo_NoMotion_20sec_1080p_CQGSunBruteForceSweep,
-        #sonichd_CQGSunBruteForceSweep,
+        _1440p_av1_42sec_0CRF_GSUN,
+        badminton_0CRF_GSUN,
+        bipbop_15_270_mono_0CRF_GSUN,
+        Halo_NoMotion_20sec_1080p_0CRF_GSUN,
+        sonichd_0CRF_GSUN,
     ]
 
     file_structs_by_res = [
