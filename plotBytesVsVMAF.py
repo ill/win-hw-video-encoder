@@ -6,7 +6,11 @@ import matplotlib.ticker as mticker
 import itertools
 import numpy as np
 import matplotlib.patheffects as path_effects
-from adjustText import adjust_text  # <-- Correct import
+from adjustText import adjust_text  # pip install adjustText
+
+# ======================================================
+# Data structures and utilities
+# ======================================================
 
 @dataclass
 class DimensionSettings:
@@ -17,22 +21,23 @@ class DimensionSettings:
 @dataclass
 class FileSettings:
     csv_file: str
-    # Key: (width, height) tuple. Use -1 for width or height to mean "all".
+    # Key: (width, height). Use -1 for width or height to mean "all".
     dims: Dict[Tuple[int, int], DimensionSettings] = field(default_factory=dict)
-    label: Optional[str] = None  # Optional label for legend; defaults to csv_file if not set
+    label: Optional[str] = None
 
-def get_distinct_colors(n):
+def get_distinct_colors(n: int):
     base_palettes = ['tab20', 'tab20b', 'tab20c']
     colors = []
     for palette in base_palettes:
         cmap = plt.get_cmap(palette)
         colors.extend([cmap(i) for i in range(cmap.N)])
     if n > len(colors):
-        hsv_colors = [plt.cm.hsv(i / n) for i in range(n - len(colors))]
+        remaining = max(0, n - len(colors))
+        hsv_colors = [plt.cm.hsv(i / max(1, remaining)) for i in range(remaining)]
         colors.extend(hsv_colors)
     return colors[:n]
 
-def format_bytes(num_bytes):
+def format_bytes(num_bytes: float):
     num_bytes = float(num_bytes)
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
         if num_bytes < 1000:
@@ -46,17 +51,50 @@ def compute_normals(x, y):
     n = len(x)
     dx = np.zeros(n)
     dy = np.zeros(n)
-    dx[1:-1] = (x[2:] - x[:-2]) / 2
-    dy[1:-1] = (y[2:] - y[:-2]) / 2
-    dx[0] = x[1] - x[0]
-    dy[0] = y[1] - y[0]
-    dx[-1] = x[-1] - x[-2]
-    dy[-1] = y[-1] - y[-2]
+    if n > 1:
+        dx[1:-1] = (x[2:] - x[:-2]) / 2
+        dy[1:-1] = (y[2:] - y[:-2]) / 2
+        dx[0] = x[1] - x[0]
+        dy[0] = y[1] - y[0]
+        dx[-1] = x[-1] - x[-2]
+        dy[-1] = y[-1] - y[-2]
     norm = np.sqrt(dx**2 + dy**2)
     norm[norm == 0] = 1
-    nx = -dy / norm
-    ny = dx / norm
-    return nx, ny
+    return -dy / norm, dx / norm
+
+def pick_bitrate_unit(values: np.ndarray) -> Tuple[float, str]:
+    """Pick a consistent bitrate unit for a row. Returns (scale_divisor, unit_label)."""
+    if values is None or len(values) == 0 or np.all(np.isnan(values)):
+        return 1.0, "bps"
+    vmax = float(np.nanmax(values))
+    if vmax >= 1e9:
+        return 1e9, "Gbps"
+    if vmax >= 1e6:
+        return 1e6, "Mbps"
+    if vmax >= 1e3:
+        return 1e3, "Kbps"
+    return 1.0, "bps"
+
+def clean_xticks(ax) -> np.ndarray:
+    """Return unique tick locations within xlim to avoid a duplicate rightmost tick."""
+    xmin, xmax = ax.get_xlim()
+    ticks = np.asarray(ax.get_xticks(), dtype=float)
+    # keep within limits (inclusive with small tolerance)
+    eps = (xmax - xmin) * 1e-9 if xmax > xmin else 1e-9
+    ticks = ticks[(ticks >= xmin - eps) & (ticks <= xmax + eps)]
+    # de-duplicate numerically-close ticks
+    ticks_sorted = np.sort(ticks)
+    dedup = []
+    for t in ticks_sorted:
+        if not dedup or not np.isclose(t, dedup[-1], rtol=0, atol=max(abs(xmax - xmin), 1.0) * 1e-12):
+            dedup.append(t)
+    # ensure we don't place a tick just beyond xmax due to float noise
+    dedup = [t for t in dedup if t <= xmax + eps]
+    return np.array(dedup, dtype=float)
+
+# ======================================================
+# Main plotting
+# ======================================================
 
 def plot_combined_bd_class_dim(
     file_settings_list: List[FileSettings],
@@ -65,231 +103,245 @@ def plot_combined_bd_class_dim(
     use_leader_lines: bool = True,
     show_crf: bool = True,
     show_filesize: bool = True,
-    normal_offset: float = 0.18  # Offset distance along normal (in data units)
+    normal_offset: float = 0.18
 ):
     marker_cycle = ['o', 's', 'D', '^', 'v', 'P', 'X', '*', '<', '>', 'h', 'H', 'd', 'p', '|', '_', '+', 'x', '1', '2', '3', '4']
-    plot_data = []
-    legend_labels = []
 
-    for file_idx, file_settings in enumerate(file_settings_list):
-        csv_file = file_settings.csv_file
-        label = file_settings.label or csv_file
-        dims_settings = file_settings.dims
+    def build_plot_data(allow_fallback_all: bool = False):
+        plot_data, legend_labels = [], []
+        for fs in file_settings_list:
+            csv_file = fs.csv_file
+            label = fs.label or csv_file
+            df = pd.read_csv(csv_file)
 
-        df = pd.read_csv(csv_file, sep=',')
-        df['file_bytes_raw'] = df['file_bytes'].astype(str).str.replace(',', '')
-        df['file_bytes'] = df['file_bytes_raw'].astype(int)
-        df['file_MB'] = df['file_bytes'] / 1_048_576
-        df['crf'] = pd.to_numeric(df['crf'], errors='coerce')
+            # numeric cleanup (handle commas)
+            df['file_bytes'] = df['file_bytes'].astype(str).str.replace(',', '', regex=False).astype(int)
+            df['file_MB'] = df['file_bytes'] / 1_048_576
+            df['crf'] = pd.to_numeric(df['crf'], errors='coerce')
 
-        def detect_pass_type(x):
-            if pd.isna(x):
-                return '1-pass'
-            val = str(x).strip().lower()
-            if val in ('n/a', 'na', ''):
-                return '1-pass'
-            return '2-pass'
-        df['pass_type'] = df['encoding_time_pass1_s'].apply(detect_pass_type)
-
-        if not dims_settings:
-            unique_dims = set(zip(df['width'], df['height']))
-            dims_settings = {dim: DimensionSettings() for dim in unique_dims}
-
-        for (width, height), dsettings in dims_settings.items():
-            if width >= 0 and height >= 0:
-                sub = df[(df['width'] == width) & (df['height'] == height)]
-                group_label = f"{label} | {width}x{height}"
-            elif width >= 0 and height < 0:
-                sub = df[df['width'] == width]
-                group_label = f"{label} | width={width}"
-            elif width < 0 and height >= 0:
-                sub = df[df['height'] == height]
-                group_label = f"{label} | height={height}"
+            # parse bitrate (already in CSV per your data)
+            if 'actual_bitrate_bps' in df.columns:
+                df['actual_bitrate_bps'] = (
+                    df['actual_bitrate_bps'].astype(str).str.replace(',', '', regex=False)
+                    .apply(lambda x: pd.to_numeric(x, errors='coerce'))
+                )
             else:
-                sub = df
-                group_label = f"{label} | all"
+                df['actual_bitrate_bps'] = np.nan
 
-            pass_types = []
-            if dsettings.enable_1pass:
-                pass_types.append('1-pass')
-            if dsettings.enable_2pass:
-                pass_types.append('2-pass')
-            sub = sub[sub['pass_type'].isin(pass_types)]
+            # pass type detection
+            def pass_type(x):
+                if pd.isna(x):
+                    return '1-pass'
+                val = str(x).strip().lower()
+                if val in ('n/a', 'na', ''):
+                    return '1-pass'
+                return '2-pass'
+            df['pass_type'] = df['encoding_time_pass1_s'].apply(pass_type)
 
-            if dsettings.crf_range is not None:
-                min_crf, max_crf = dsettings.crf_range
-                sub = sub[(sub['crf'] >= min_crf) & (sub['crf'] <= max_crf)]
-            if sub.empty:
-                continue
+            # prepare dims (wildcard support)
+            dims = fs.dims
+            if not dims:
+                unique_dims = set(zip(df['width'], df['height']))
+                dims = {dim: DimensionSettings() for dim in unique_dims}
 
-            for pass_type in pass_types:
-                group = sub[sub['pass_type'] == pass_type]
-                if group.empty:
+            # if fallback requested, override dims to "all"
+            if allow_fallback_all:
+                dims = {(-1, -1): DimensionSettings(
+                    enable_1pass=True, enable_2pass=True, crf_range=None
+                )}
+
+            # iterate dims and pass types
+            for (w, h), d in dims.items():
+                if w >= 0 and h >= 0:
+                    sub = df[(df['width'] == w) & (df['height'] == h)]
+                    group_label = f"{label} | {w}x{h}"
+                elif w >= 0 and h < 0:
+                    sub = df[df['width'] == w]
+                    group_label = f"{label} | width={w}"
+                elif w < 0 and h >= 0:
+                    sub = df[df['height'] == h]
+                    group_label = f"{label} | height={h}"
+                else:
+                    sub = df
+                    group_label = f"{label} | all"
+
+                # apply CRF range if provided
+                if d.crf_range is not None:
+                    lo, hi = d.crf_range
+                    sub = sub[(sub['crf'] >= lo) & (sub['crf'] <= hi)]
+
+                # pass filter
+                pass_types: List[str] = []
+                if d.enable_1pass:
+                    pass_types.append('1-pass')
+                if d.enable_2pass:
+                    pass_types.append('2-pass')
+
+                sub = sub[sub['pass_type'].isin(pass_types)]
+                if sub.empty:
                     continue
-                sort_idx = np.argsort(group['file_MB'].values)
-                plot_data.append({
-                    'file': label,
-                    'dim': (width, height),
-                    'pass_type': pass_type,
-                    'file_MB': group['file_MB'].values[sort_idx],
-                    'vmaf_mean': group['vmaf_mean'].values[sort_idx],
-                    'crf': group['crf'].values[sort_idx],
-                    'file_bytes': group['file_bytes'].values[sort_idx]
-                })
-                legend_labels.append(f"{group_label} | {pass_type}")
 
-    n_groups = len(plot_data)
-    colors = get_distinct_colors(n_groups)
+                for pt in pass_types:
+                    g = sub[sub['pass_type'] == pt].sort_values('file_MB')
+                    if g.empty:
+                        continue
+                    plot_data.append({
+                        'file': label,
+                        'dim': (w, h),
+                        'pass': pt,
+                        'file_MB': g['file_MB'].values,
+                        'vmaf': g['vmaf_mean'].values,
+                        'crf': g['crf'].values,
+                        'file_bytes': g['file_bytes'].values,
+                        'bitrate': g['actual_bitrate_bps'].values,
+                    })
+                    legend_labels.append(f"{group_label} | {pt}")
+        return plot_data, legend_labels
+
+    # First attempt with requested filters
+    plot_data, legend_labels = build_plot_data(allow_fallback_all=False)
+
+    # Fallback to "all" if filters yielded nothing
+    if not plot_data:
+        plot_data, legend_labels = build_plot_data(allow_fallback_all=True)
+        if not plot_data:
+            raise ValueError("No plot data available (even after fallback). Check your filters and CSVs.")
+
+    # ordering of file rows (first-seen)
+    ordered_files: List[str] = []
+    for pdict in plot_data:
+        if pdict['file'] not in ordered_files:
+            ordered_files.append(pdict['file'])
+    n_files = max(1, len(ordered_files))
+
+    # ---------- Draw main plot ----------
+    colors = get_distinct_colors(len(plot_data))
+    fig, ax = plt.subplots(figsize=(14, 9))
     marker_iter = itertools.cycle(marker_cycle)
 
-    fig, ax = plt.subplots(figsize=(14, 9))
+    for i, pdict in enumerate(plot_data):
+        color = colors[i]
+        marker = next(marker_iter)
+        ax.plot(
+            pdict['file_MB'],
+            pdict['vmaf'],
+            color=color,
+            marker=marker,
+            linestyle='-',
+            linewidth=2,
+            markersize=7,
+            label=legend_labels[i],
+            alpha=0.9
+        )
 
-    if use_leader_lines:
-        all_texts = []
-        all_label_points = []
-        all_label_colors = []
-
-        for i, pdict in enumerate(plot_data):
-            color = colors[i]
-            marker = next(marker_iter)
-            ax.plot(
-                pdict['file_MB'],
-                pdict['vmaf_mean'],
-                color=color,
-                marker=marker,
-                linestyle='-',
-                linewidth=2,
-                markersize=8,
-                label=legend_labels[i],
-                alpha=0.85
-            )
-            ax.scatter(
-                pdict['file_MB'],
-                pdict['vmaf_mean'],
-                color=color,
-                marker=marker,
-                edgecolor='black',
-                s=80,
-                alpha=0.95
-            )
-            x = np.array(pdict['file_MB'])
-            y = np.array(pdict['vmaf_mean'])
-            nx, ny = compute_normals(x, y)
-            texts = []
-            label_points = []
-            label_colors = []
-            for idx, (xi, yi, nxi, nyi, crf, file_bytes) in enumerate(zip(x, y, nx, ny, pdict['crf'], pdict['file_bytes'])):
-                label_parts = []
-                if show_crf:
-                    label_parts.append(f"{int(crf)}")
-                if show_filesize:
-                    label_parts.append(f"({format_bytes(file_bytes)})")
-                label_str = " ".join(label_parts)
+        # Per-dot labels (CRF and optionally file size), with/without leader lines
+        nx, ny = compute_normals(pdict['file_MB'], pdict['vmaf'])
+        for xi, yi, nxi, nyi, crf, fb in zip(
+            pdict['file_MB'], pdict['vmaf'], nx, ny, pdict['crf'], pdict['file_bytes']
+        ):
+            label_parts = []
+            if show_crf:
+                label_parts.append(f"{int(crf)}")
+            if show_filesize:
+                label_parts.append(f"({format_bytes(fb)})")
+            if not label_parts:
+                continue
+            if use_leader_lines:
                 lx = xi + normal_offset * nxi
                 ly = yi + normal_offset * nyi
-                txt = ax.text(
-                    lx, ly, label_str,
-                    fontsize=8, ha='left', va='bottom', color=color, zorder=10
-                )
-                txt.set_path_effects([
-                    path_effects.Stroke(linewidth=1.5, foreground='black'),
-                    path_effects.Normal()
-                ])
-                texts.append(txt)
-                label_points.append((xi, yi))
-                label_colors.append(color)
-            # Per-group adjustText to minimize intra-group overlap and line crossings
-            adjust_text(
-                texts,
-                ax=ax,
-                expand_points=(1.2, 1.2),
-                expand_text=(1.2, 1.2),
-                force_text=(0.5, 0.5),
-                only_move={'points':'none', 'text':'xy'},
-                arrowprops=None
+            else:
+                lx = xi + 0.03
+                ly = yi + 0.03
+            txt = ax.text(
+                lx, ly, " ".join(label_parts),
+                fontsize=8, ha='left', va='bottom', color=color, zorder=10
             )
-            all_texts.extend(texts)
-            all_label_points.extend(label_points)
-            all_label_colors.extend(label_colors)
+            txt.set_path_effects([
+                path_effects.Stroke(linewidth=1.4, foreground='black'),
+                path_effects.Normal()
+            ])
+            if use_leader_lines:
+                ax.plot([xi, lx], [yi, ly], color=color, lw=1, alpha=0.8, zorder=9)
 
-        # Global adjustText pass to resolve any remaining inter-group overlaps
-        adjust_text(
-            all_texts,
-            ax=ax,
-            expand_points=(1.1, 1.1),
-            expand_text=(1.1, 1.1),
-            force_text=(0.2, 0.2),
-            only_move={'points':'none', 'text':'xy'},
-            arrowprops=None
-        )
-        # Draw leader lines in the correct color, from point to label
-        for txt, (x, y), color in zip(all_texts, all_label_points, all_label_colors):
-            label_pos = txt.get_position()
-            ax.plot([x, label_pos[0]], [y, label_pos[1]], color=color, lw=1, alpha=0.8, zorder=9)
-    else:
-        for i, pdict in enumerate(plot_data):
-            color = colors[i]
-            marker = next(marker_iter)
-            ax.plot(
-                pdict['file_MB'],
-                pdict['vmaf_mean'],
-                color=color,
-                marker=marker,
-                linestyle='-',
-                linewidth=2,
-                markersize=8,
-                label=legend_labels[i],
-                alpha=0.85
-            )
-            ax.scatter(
-                pdict['file_MB'],
-                pdict['vmaf_mean'],
-                color=color,
-                marker=marker,
-                edgecolor='black',
-                s=80,
-                alpha=0.95
-            )
-            for x, y, crf, file_bytes in zip(pdict['file_MB'], pdict['vmaf_mean'], pdict['crf'], pdict['file_bytes']):
-                label_parts = []
-                if show_crf:
-                    label_parts.append(f"{int(crf)}")
-                if show_filesize:
-                    label_parts.append(f"({format_bytes(file_bytes)})")
-                label_str = " ".join(label_parts)
-                txt = ax.text(
-                    x + 0.03, y + 0.03, label_str,
-                    fontsize=8, ha='left', va='bottom', color=color, zorder=10
-                )
-                txt.set_path_effects([
-                    path_effects.Stroke(linewidth=1.5, foreground='black'),
-                    path_effects.Normal()
-                ])
+    # ---------- Style ----------
+    ax.set_xlabel("File Size (MB)")
+    ax.set_ylabel("VMAF Mean")
+    ax.set_title("Combined BD Curve (Grouped by File, (Width, Height), Pass Type)")
+    ax.legend(fontsize=8, loc='best', ncol=2)
 
-    # X-axis and Y-axis formatting for more subdivisions and less left padding
     ax.xaxis.set_major_locator(mticker.MaxNLocator(nbins=16))
     ax.xaxis.set_minor_locator(mticker.AutoMinorLocator(2))
-    ax.grid(which='major', axis='x', linestyle='-', alpha=0.5)
-    ax.grid(which='minor', axis='x', linestyle=':', alpha=0.3)
     ax.yaxis.set_major_locator(mticker.MaxNLocator(nbins=12))
     ax.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
-    ax.grid(which='major', axis='y', linestyle='-', alpha=0.5)
-    ax.grid(which='minor', axis='y', linestyle=':', alpha=0.3)
+    ax.grid(which='major', axis='both', linestyle='-', alpha=0.35)
+    ax.grid(which='minor', axis='both', linestyle=':', alpha=0.25)
     ax.margins(x=0)
-    plt.subplots_adjust(left=0.10)
     ax.set_xlim(left=0)
 
-    ax.set_xlabel('File Size (MB)')
-    ax.set_ylabel('VMAF Mean')
-    ax.set_title('Combined BD Curve (Grouped by File, (Width, Height), Pass Type)')
-    ax.legend(fontsize=8, loc='best', ncol=2)
-    plt.tight_layout()
+    # compute clean tick locations after limits are final
+    tick_locs = clean_xticks(ax)
 
-    fig.savefig(output_filename)
+    # ---------- Reserve space and place the panel below the main axis ----------
+    # Panel size and gap in FIGURE coordinates, so it clears axis visuals.
+    panel_h_fig = 0.12 + 0.06 * (n_files - 1)  # panel height scales with number of files
+    gap_fig = 0.05                              # extra gap between main axis and panel
+    # Ensure bottom margin accommodates panel
+    plt.subplots_adjust(left=0.10, bottom=max(0.15, panel_h_fig + gap_fig + 0.06))
+
+    # Recompute main axis position after subplots_adjust
+    axpos = ax.get_position()  # in figure coords (x0, y0, x1, y1)
+    panel_rect = [axpos.x0, max(0.02, axpos.y0 - panel_h_fig - gap_fig), axpos.width, panel_h_fig]
+    strip = fig.add_axes(panel_rect)
+    xmin, xmax = ax.get_xlim()
+    strip.set_xlim([xmin, xmax])
+    strip.set_ylim(0, n_files)
+    strip.axis("off")
+
+    # Header separator
+    strip.plot([xmin, xmax], [n_files, n_files], lw=0.8, alpha=0.5)
+
+    # ---------- Multi-row bitrate panel (tick-aligned) ----------
+    for row_idx, fname in enumerate(ordered_files):
+        y_center = n_files - 1 - row_idx + 0.5
+        # subtle row rule
+        strip.plot([xmin, xmax], [y_center, y_center], lw=0.4, alpha=0.25)
+
+        # Collect all bitrates for this file to pick a stable unit
+        file_series = [p for p in plot_data if p['file'] == fname]
+        all_vals = np.concatenate(
+            [s['bitrate'] for s in file_series if s['bitrate'] is not None and len(s['bitrate']) > 0]
+        ) if file_series else np.array([])
+        scale, unit = pick_bitrate_unit(all_vals)
+
+        # Row label with units
+        strip.text(xmin, y_center + 0.35, f"{fname}: Actual bitrate ({unit})",
+                   ha='left', va='center', fontsize=8)
+
+        # For each x tick, find the nearest point from each series; average their bitrates
+        for tick in tick_locs:
+            candidates = []
+            for series in file_series:
+                xs = series['file_MB']
+                bs = series['bitrate']
+                if len(xs) == 0 or len(bs) == 0 or np.all(np.isnan(bs)):
+                    continue
+                idx_min = int(np.argmin(np.abs(xs - tick)))
+                val = bs[idx_min]
+                if not np.isnan(val):
+                    candidates.append(val)
+            if candidates:
+                avg_bps = float(np.nanmean(candidates))
+                scaled = avg_bps / scale if scale else avg_bps
+                strip.text(tick, y_center - 0.1, f"{scaled:,.2f}",
+                           ha='center', va='center', fontsize=7)
+
+    # ---------- Save / show ----------
+    fig.savefig(output_filename, dpi=150, bbox_inches="tight")
     print(f"Saved plot to {output_filename}")
     if show_plot:
         plt.show()
     plt.close(fig)
+
 
 # Example usage:
 # Plot all widths:
@@ -305,26 +357,26 @@ def plot_combined_bd_class_dim(
 def highGraphs():
     # Define your settings using the classes
     file_structs = [
+        FileSettings(
+            csv_file='Out/CRF/sonichd/sonichd-CRF.csv',
+            dims={
+                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+            },
+            label='SonicHD'
+        ),
+        FileSettings(
+            csv_file='Out/CRF/badminton/badminton-CRF.csv',
+            dims={
+                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+            },
+            label='badminton'
+        ),
         # FileSettings(
-        #     csv_file='Out--Latest/CRF-Backup/sonichd/sonichd-CRF.csv',
-        #     dims={
-        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-        #     },
-        #     label='SonicHD'
-        # ),
-        # FileSettings(
-        #     csv_file='Out--Latest/CRF-Backup/badminton/badminton-CRF.csv',
-        #     dims={
-        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-        #     },
-        #     label='badminton'
-        # ),
-        # FileSettings(
-        #     csv_file='Out--Latest/CRF-Backup/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
+        #     csv_file='Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
         #     dims={
         #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
         #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
@@ -332,16 +384,16 @@ def highGraphs():
         #     },
         #     label='1440p-av1-42sec'
         # ),
-        FileSettings(
-            csv_file='Out--Latest/CRF-Backup/steal-a-brainrot/steal-a-brainrot-CRF.csv',
-            dims={
-                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (960, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54)),
-                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-            },
-            label='steal-a-brainrot'
-        ),
+        # FileSettings(
+        #     csv_file='Out/CRF/steal-a-brainrot/steal-a-brainrot-CRF.csv',
+        #     dims={
+        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (960, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54)),
+        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #     },
+        #     label='steal-a-brainrot'
+        # ),
     ]
 
     plot_combined_bd_class_dim(
@@ -394,7 +446,7 @@ def sonichdGraphs():
         show_plot=True,
         use_leader_lines=False,
         show_crf=True,
-        show_filesize=False
+        #show_filesize=False
     )
 
 
