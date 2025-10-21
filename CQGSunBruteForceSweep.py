@@ -54,7 +54,7 @@ class CQGSunBruteForceSweep(CQExperiment.CQExperiment):
         speed_pass_2_to = 0
         speed_pass_2_step = 1
 
-        one_pass_encoding = True
+        one_pass_encoding = False
         two_pass_encoding = True
 
         print(f'{Util.HEADER}\nSweeping Values Between')

@@ -59,15 +59,16 @@ class CQExperiment(Experiment.Experiment):
             self.cq_params = cq_params
 
         def get_extra_ffmpeg_parameters(self):
-            return [
-                '-crf', str(self.cq_params.crf),
-                '-b:v', f'{self.cq_params.target_bitrate_kbps}k',
-                '-minrate', f'{self.cq_params.min_bitrate_kbps}k',
-                '-maxrate', f'{self.cq_params.max_bitrate_kbps}k',
+            return (
+            (['-crf', str(self.cq_params.crf)] if self.cq_params.crf > 0 else [])
+            + (['-b:v', f'{self.cq_params.target_bitrate_kbps}k'] if self.cq_params.target_bitrate_kbps > 0 else [])
+            + (['-minrate', f'{self.cq_params.min_bitrate_kbps}k'] if self.cq_params.min_bitrate_kbps > 0 else [])
+            + (['-maxrate', f'{self.cq_params.max_bitrate_kbps}k'] if self.cq_params.max_bitrate_kbps > 0 else [])
+            + [
                 '-quality', 'good',
                 '-threads', str(self.cq_params.threads),
                 '-tile-columns', str(self.cq_params.tile_columns)
-            ]
+            ])
         
         def get_extra_ffmpeg_parameters_single_pass(self):
             return (self.get_extra_ffmpeg_parameters()
