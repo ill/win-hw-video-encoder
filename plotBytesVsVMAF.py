@@ -9,14 +9,15 @@ import matplotlib.patheffects as path_effects
 from adjustText import adjust_text  # pip install adjustText
 
 # ======================================================
-# Data structures and utilities
+# Data classes & utilities
 # ======================================================
 
 @dataclass
 class DimensionSettings:
     enable_1pass: bool = True
     enable_2pass: bool = True
-    crf_range: Optional[Tuple[float, float]] = None  # (min_crf, max_crf) or None
+    crf_range: Optional[Tuple[float, float]] = None  # (min_crf, max_crf)
+    gsun_range: Optional[Tuple[Optional[float], Optional[float]]] = None  # (min_gsun, max_gsun)
 
 @dataclass
 class FileSettings:
@@ -24,6 +25,9 @@ class FileSettings:
     # Key: (width, height). Use -1 for width or height to mean "all".
     dims: Dict[Tuple[int, int], DimensionSettings] = field(default_factory=dict)
     label: Optional[str] = None
+    # Per-file label toggles (default off)
+    show_crf: bool = False
+    show_gsun: bool = False
 
 def get_distinct_colors(n: int):
     base_palettes = ['tab20', 'tab20b', 'tab20c']
@@ -79,31 +83,26 @@ def clean_xticks(ax) -> np.ndarray:
     """Return unique tick locations within xlim to avoid a duplicate rightmost tick."""
     xmin, xmax = ax.get_xlim()
     ticks = np.asarray(ax.get_xticks(), dtype=float)
-    # keep within limits (inclusive with small tolerance)
     eps = (xmax - xmin) * 1e-9 if xmax > xmin else 1e-9
     ticks = ticks[(ticks >= xmin - eps) & (ticks <= xmax + eps)]
-    # de-duplicate numerically-close ticks
     ticks_sorted = np.sort(ticks)
     dedup = []
     for t in ticks_sorted:
         if not dedup or not np.isclose(t, dedup[-1], rtol=0, atol=max(abs(xmax - xmin), 1.0) * 1e-12):
             dedup.append(t)
-    # ensure we don't place a tick just beyond xmax due to float noise
     dedup = [t for t in dedup if t <= xmax + eps]
     return np.array(dedup, dtype=float)
 
 # ======================================================
-# Main plotting
+# Main plotting function
 # ======================================================
 
 def plot_combined_bd_class_dim(
     file_settings_list: List[FileSettings],
     output_filename: str,
     show_plot: bool = False,
-    use_leader_lines: bool = True,
-    show_crf: bool = True,
-    show_filesize: bool = True,
-    normal_offset: float = 0.18
+    use_leader_lines: bool = True,   # kept for API parity; ignored for text placement now
+    normal_offset: float = 0.18      # kept for API parity; not used for text placement
 ):
     marker_cycle = ['o', 's', 'D', '^', 'v', 'P', 'X', '*', '<', '>', 'h', 'H', 'd', 'p', '|', '_', '+', 'x', '1', '2', '3', '4']
 
@@ -128,6 +127,15 @@ def plot_combined_bd_class_dim(
             else:
                 df['actual_bitrate_bps'] = np.nan
 
+            # parse GSUN if present
+            if 'gsun' in df.columns:
+                df['gsun'] = (
+                    df['gsun'].astype(str).str.replace(',', '', regex=False)
+                    .apply(lambda x: pd.to_numeric(x, errors='coerce'))
+                )
+            else:
+                df['gsun'] = np.nan
+
             # pass type detection
             def pass_type(x):
                 if pd.isna(x):
@@ -147,7 +155,7 @@ def plot_combined_bd_class_dim(
             # if fallback requested, override dims to "all"
             if allow_fallback_all:
                 dims = {(-1, -1): DimensionSettings(
-                    enable_1pass=True, enable_2pass=True, crf_range=None
+                    enable_1pass=True, enable_2pass=True, crf_range=None, gsun_range=None
                 )}
 
             # iterate dims and pass types
@@ -169,6 +177,14 @@ def plot_combined_bd_class_dim(
                 if d.crf_range is not None:
                     lo, hi = d.crf_range
                     sub = sub[(sub['crf'] >= lo) & (sub['crf'] <= hi)]
+
+                # apply GSUN range if provided (each bound optional)
+                if d.gsun_range is not None:
+                    gmin, gmax = d.gsun_range
+                    if gmin is not None:
+                        sub = sub[sub['gsun'] >= gmin]
+                    if gmax is not None:
+                        sub = sub[sub['gsun'] <= gmax]
 
                 # pass filter
                 pass_types: List[str] = []
@@ -192,16 +208,17 @@ def plot_combined_bd_class_dim(
                         'file_MB': g['file_MB'].values,
                         'vmaf': g['vmaf_mean'].values,
                         'crf': g['crf'].values,
-                        'file_bytes': g['file_bytes'].values,
                         'bitrate': g['actual_bitrate_bps'].values,
+                        'gsun': g['gsun'].values,
+                        # per-file label toggles snapshot
+                        'show_crf': fs.show_crf,
+                        'show_gsun': fs.show_gsun,
                     })
                     legend_labels.append(f"{group_label} | {pt}")
         return plot_data, legend_labels
 
-    # First attempt with requested filters
+    # Build data
     plot_data, legend_labels = build_plot_data(allow_fallback_all=False)
-
-    # Fallback to "all" if filters yielded nothing
     if not plot_data:
         plot_data, legend_labels = build_plot_data(allow_fallback_all=True)
         if not plot_data:
@@ -234,34 +251,28 @@ def plot_combined_bd_class_dim(
             alpha=0.9
         )
 
-        # Per-dot labels (CRF and optionally file size), with/without leader lines
-        nx, ny = compute_normals(pdict['file_MB'], pdict['vmaf'])
-        for xi, yi, nxi, nyi, crf, fb in zip(
-            pdict['file_MB'], pdict['vmaf'], nx, ny, pdict['crf'], pdict['file_bytes']
+        # Per-dot labels (comma-separated, numbers only), aligned exactly at the dot (no offset)
+        for xi, yi, crf_val, gsun_val in zip(
+            pdict['file_MB'], pdict['vmaf'], pdict['crf'], pdict['gsun']
         ):
-            label_parts = []
-            if show_crf:
-                label_parts.append(f"{int(crf)}")
-            if show_filesize:
-                label_parts.append(f"({format_bytes(fb)})")
-            if not label_parts:
+            parts = []
+            if pdict.get('show_crf', False) and pd.notna(crf_val):
+                parts.append(f"{int(crf_val)}")
+            if pdict.get('show_gsun', False) and pd.notna(gsun_val):
+                parts.append(f"{gsun_val:.2f}")
+            if not parts:
                 continue
-            if use_leader_lines:
-                lx = xi + normal_offset * nxi
-                ly = yi + normal_offset * nyi
-            else:
-                lx = xi + 0.03
-                ly = yi + 0.03
+            label_str = ", ".join(parts)
+            # place text exactly at the data point; no leader lines when labels are not offset
             txt = ax.text(
-                lx, ly, " ".join(label_parts),
-                fontsize=8, ha='left', va='bottom', color=color, zorder=10
+                xi, yi, label_str,
+                fontsize=8, ha='center', va='center', color=color, zorder=10
             )
             txt.set_path_effects([
                 path_effects.Stroke(linewidth=1.4, foreground='black'),
                 path_effects.Normal()
             ])
-            if use_leader_lines:
-                ax.plot([xi, lx], [yi, ly], color=color, lw=1, alpha=0.8, zorder=9)
+            # No leader line drawn because there is no displacement
 
     # ---------- Style ----------
     ax.set_xlabel("File Size (MB)")
@@ -281,17 +292,15 @@ def plot_combined_bd_class_dim(
     # compute clean tick locations after limits are final
     tick_locs = clean_xticks(ax)
 
-    # ---------- Reserve space and place the panel below the main axis ----------
-    # Panel size and gap in FIGURE coordinates, so it clears axis visuals.
+    # ---------- Reserve space and place the bitrate panel below the main axis ----------
     panel_h_fig = 0.12 + 0.06 * (n_files - 1)  # panel height scales with number of files
     gap_fig = 0.05                              # extra gap between main axis and panel
-    # Ensure bottom margin accommodates panel
     plt.subplots_adjust(left=0.10, bottom=max(0.15, panel_h_fig + gap_fig + 0.06))
 
     # Recompute main axis position after subplots_adjust
     axpos = ax.get_position()  # in figure coords (x0, y0, x1, y1)
     panel_rect = [axpos.x0, max(0.02, axpos.y0 - panel_h_fig - gap_fig), axpos.width, panel_h_fig]
-    strip = fig.add_axes(panel_rect)
+    strip = plt.gcf().add_axes(panel_rect)
     xmin, xmax = ax.get_xlim()
     strip.set_xlim([xmin, xmax])
     strip.set_ylim(0, n_files)
@@ -336,11 +345,14 @@ def plot_combined_bd_class_dim(
                            ha='center', va='center', fontsize=7)
 
     # ---------- Save / show ----------
-    fig.savefig(output_filename, dpi=150, bbox_inches="tight")
+    plt.gcf().savefig(output_filename, dpi=150, bbox_inches="tight")
     print(f"Saved plot to {output_filename}")
     if show_plot:
         plt.show()
-    plt.close(fig)
+    plt.close(plt.gcf())
+
+
+
 
 
 # Example usage:
@@ -357,24 +369,101 @@ def plot_combined_bd_class_dim(
 def highGraphs():
     # Define your settings using the classes
     file_structs = [
+        # FileSettings(
+        #     csv_file='Out/CRF/sonichd/sonichd-CRF.csv',
+        #     dims={
+        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #     },
+        #     label='SonicHD'
+        # ),
+        # FileSettings(
+        #     csv_file='Out/CRF/badminton/badminton-CRF.csv',
+        #     dims={
+        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #     },
+        #     label='badminton'
+        # ),
+        # FileSettings(
+        #     csv_file='Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
+        #     dims={
+        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #     },
+        #     label='1440p-av1-42sec'
+        # ),
+        # FileSettings(
+        #     csv_file='Out/CRF/steal-a-brainrot/steal-a-brainrot-CRF.csv',
+        #     dims={
+        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (960, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54)),
+        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #     },
+        #     label='steal-a-brainrot'
+        # ),
         FileSettings(
-            csv_file='Out/CRF/sonichd/sonichd-CRF.csv',
+            csv_file='Out/CQGoogleGSunExperiment/bipbop15_270_mono/bipbop15_270_mono-CQGoogleGSunExperiment.csv',
             dims={
-                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+                (480, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (160, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
             },
-            label='SonicHD'
+            label='bipbop15_270_mono',
+            show_gsun=True,
+            show_crf=True,
         ),
+    ]
+
+    plot_combined_bd_class_dim(
+        file_settings_list=file_structs,
+        output_filename='combined_bd_graph.png',
+        show_plot=True,
+        use_leader_lines=False,
+    )
+
+def lowMotionGraphs():
+    # Define your settings using the classes
+    file_structs = [
         FileSettings(
-            csv_file='Out/CRF/badminton/badminton-CRF.csv',
+            csv_file='Out--Latest/CRF-Backup/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CRF.csv',
             dims={
-                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(8, 42))
             },
-            label='badminton'
+            label='Halo_NoMotion_20sec_1080p'
+        )
+    ]
+
+    plot_combined_bd_class_dim(
+        file_settings_list=file_structs,
+        output_filename='combined_low_motion_bd_graph.png',
+        show_plot=True,
+        use_leader_lines=False,
+    )
+
+def highGraphs_gsun():
+    # Define your settings using the classes
+    file_structs = [
+        FileSettings(
+            csv_file='Out/CQGoogleGSunExperiment/bipbop15_270_mono/bipbop15_270_mono-CQGoogleGSunExperiment.csv',
+            dims={
+                (480, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                (160, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+            },
+            label='bipbop15_270_mono'
         ),
+        # FileSettings(
+        #     csv_file='Out/CRF/badminton/badminton-CRF.csv',
+        #     dims={
+        #         (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #     },
+        #     label='badminton'
+        # ),
         # FileSettings(
         #     csv_file='Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
         #     dims={
@@ -401,54 +490,7 @@ def highGraphs():
         output_filename='combined_bd_graph.png',
         show_plot=True,
         use_leader_lines=False,
-        show_crf=True,
-        show_filesize=False
     )
-
-def lowMotionGraphs():
-    # Define your settings using the classes
-    file_structs = [
-        FileSettings(
-            csv_file='Out--Latest/CRF-Backup/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CRF.csv',
-            dims={
-                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(8, 42))
-            },
-            label='Halo_NoMotion_20sec_1080p'
-        )
-    ]
-
-    plot_combined_bd_class_dim(
-        file_settings_list=file_structs,
-        output_filename='combined_low_motion_bd_graph.png',
-        show_plot=True,
-        use_leader_lines=False,
-        show_crf=True,
-        show_filesize=False
-    )
-
-def sonichdGraphs():
-    # Define your settings using the classes
-    file_structs = [
-        FileSettings(
-            csv_file='Out--Latest/CRF-Backup/sonichd/sonichd-CRF.csv',
-            dims={
-                (1920, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (1280, -1): DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (640, -1): DimensionSettings(enable_1pass=False, crf_range=(0, 54)),
-            },
-            label='SonicHD'
-        ),
-    ]
-
-    plot_combined_bd_class_dim(
-        file_settings_list=file_structs,
-        output_filename='combined_sonichd_bd_graph.png',
-        show_plot=True,
-        use_leader_lines=False,
-        show_crf=True,
-        #show_filesize=False
-    )
-
 
 if __name__ == "__main__":
     highGraphs()

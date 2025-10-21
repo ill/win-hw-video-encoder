@@ -6,6 +6,7 @@ import QualityExperiment
 import CQGoogleExperiment
 import CQGoogleExperimentBruteForceSweep
 import CQGSunBruteForceSweep
+import CQGoogleGSunExperiment
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Video transcode automation script.")
@@ -54,11 +55,18 @@ def main():
 
     #CQGoogleExperimentBruteForceSweep.CQGoogleExperimentBruteForceSweep('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
 
-    CQGSunBruteForceSweep.CQGSunBruteForceSweep('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
-    CQGSunBruteForceSweep.CQGSunBruteForceSweep('Halo_NoMotion_20sec_1080p.mp4', 'Halo_NoMotion_20sec_1080p').run_experiment()
-    CQGSunBruteForceSweep.CQGSunBruteForceSweep('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
-    CQGSunBruteForceSweep.CQGSunBruteForceSweep('sonichd.mp4', 'sonichd').run_experiment()
-    CQGSunBruteForceSweep.CQGSunBruteForceSweep('badminton.mp4', 'badminton').run_experiment()
+    # CQGSunBruteForceSweep.CQGSunBruteForceSweep('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
+    # CQGSunBruteForceSweep.CQGSunBruteForceSweep('Halo_NoMotion_20sec_1080p.mp4', 'Halo_NoMotion_20sec_1080p').run_experiment()
+    # CQGSunBruteForceSweep.CQGSunBruteForceSweep('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    # CQGSunBruteForceSweep.CQGSunBruteForceSweep('sonichd.mp4', 'sonichd').run_experiment()
+    # CQGSunBruteForceSweep.CQGSunBruteForceSweep('badminton.mp4', 'badminton').run_experiment()
+
+    CQGoogleGSunExperiment.CQGoogleGSunExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
+    # CQGoogleGSunExperiment.CQGoogleGSunExperiment('Halo_NoMotion_20sec_1080p.mp4',
+    #                                             'Halo_NoMotion_20sec_1080p').run_experiment()
+    # CQGoogleGSunExperiment.CQGoogleGSunExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
+    # CQGoogleGSunExperiment.CQGoogleGSunExperiment('sonichd.mp4', 'sonichd').run_experiment()
+    # CQGoogleGSunExperiment.CQGoogleGSunExperiment('badminton.mp4', 'badminton').run_experiment()
 
     print('Done.')
 
