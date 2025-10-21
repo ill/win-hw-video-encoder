@@ -21,9 +21,9 @@ plotBytesVsVMAF.FileSettings(
     csv_file='Out/CRF/badminton/badminton-CRF.csv',
     dims={
         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54)),
-        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54))
+        # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54)),
+        # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54))
     },
     label='badminton',
     show_crf=True,
@@ -84,9 +84,9 @@ plotBytesVsVMAF.FileSettings(
     csv_file='Out/CRF/sonichd/sonichd-CRF.csv',
     dims={
         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54)),
-        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54))
+        # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54)),
+        # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(3, 54))
     },
     label='SonicHD',
     show_crf=True,
@@ -139,9 +139,9 @@ plotBytesVsVMAF.FileSettings(
     csv_file='Out/CQGoogleGSunExperiment/badminton/badminton-CQGoogleGSunExperiment.csv',
     dims={
         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+        # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
     },
     label='badminton-Gsun',
     show_gsun=True,
@@ -176,9 +176,9 @@ plotBytesVsVMAF.FileSettings(
     csv_file='Out/CQGoogleGSunExperiment/sonichd/sonichd-CQGoogleGSunExperiment.csv',
     dims={
         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+        # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
     },
     label='SonicHD-Gsun',
     show_gsun=True,
@@ -205,9 +205,9 @@ plotBytesVsVMAF.FileSettings(
     csv_file='Out/CQGSunBruteForceSweep/badminton/badminton-CQGSunBruteForceSweep.csv',
     dims={
         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+        # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
     },
     label='badminton-0CRF-Gsun',
     show_gsun=True,
@@ -242,9 +242,9 @@ plotBytesVsVMAF.FileSettings(
     csv_file='Out/CQGSunBruteForceSweep/sonichd/sonichd-CQGSunBruteForceSweep.csv',
     dims={
         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-        (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+        # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
     },
     label='SonicHD-0CRF-Gsun',
     show_gsun=True,
@@ -336,31 +336,31 @@ plotBytesVsVMAF.FileSettingsByResolution(
 def graphsCombo():
     # Define your settings using the classes
     file_structs = [
-        _1440p_av1_42sec_CRF,
+        #_1440p_av1_42sec_CRF,
         #badminton_CRF,
         #bipbop_15_270_mono_CRF,
         #Halo_Montage_1080p_CRF,
         #Halo_NoMotion_20sec_1080p_CRF,
         #ios_native_recorder_CRF,
-        #sonichd_CRF,
+        sonichd_CRF,
         #steal_a_brainrot_CRF,
         #strongest_battlegrounds_mac_1440_CRF,
 
-        _1440p_av1_42sec_CQGoogleGSun,
+        #_1440p_av1_42sec_CQGoogleGSun,
         #badminton_CQGoogleGSun,
         #bipbop_15_270_mono_CQGoogleGSun,
         #Halo_NoMotion_20sec_1080p_CQGoogleGSun,
-        #sonichd_CQGoogleGSun,
+        sonichd_CQGoogleGSun,
 
-        _1440p_av1_42sec_0CRF_GSUN,
-        badminton_0CRF_GSUN,
-        bipbop_15_270_mono_0CRF_GSUN,
-        Halo_NoMotion_20sec_1080p_0CRF_GSUN,
+        #_1440p_av1_42sec_0CRF_GSUN,
+        #badminton_0CRF_GSUN,
+        #bipbop_15_270_mono_0CRF_GSUN,
+        #Halo_NoMotion_20sec_1080p_0CRF_GSUN,
         sonichd_0CRF_GSUN,
     ]
 
     file_structs_by_res = [
-        _1440p_av1_42sec_CQGoogle,
+        #_1440p_av1_42sec_CQGoogle,
         #badminton_CQGoogle,
         #bipbop15_270_mono_CQGoogle,
         #Halo_Montage_1080p_CQGoogle,
