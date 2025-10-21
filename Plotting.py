@@ -7,8 +7,9 @@ def highGraphs():
             csv_file='Out/CRF/sonichd/sonichd-CRF.csv',
             dims={
                 (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+                # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+                # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(0, 54))
             },
             label='SonicHD',
             show_crf=True,
@@ -27,8 +28,9 @@ def highGraphs():
         #     csv_file='Out/CRF/1440p-av1-42sec/1440p-av1-42sec-CRF.csv',
         #     dims={
         #         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-        #         (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(0, 54))
+        #         # (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
+        #         # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(0, 54))
         #     },
         #     label='1440p-av1-42sec',
         #     show_crf=True,
@@ -65,7 +67,21 @@ def highGraphs():
             },
             label='SonicHD-Gsun',
             show_gsun=True,
+            show_crf=False,
         ),
+
+        # plotBytesVsVMAF.FileSettings(
+        #     csv_file='Out/CQGoogleGSunExperiment/1440p-av1-42sec/1440p-av1-42sec-CQGoogleGSunExperiment.csv',
+        #     dims={
+        #         (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #         (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #         (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
+        #         (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
+        #     },
+        #     label='1440p-av1-42sec-Gsun',
+        #     show_gsun=True,
+        #     show_crf=False,
+        # ),
 
         # plotBytesVsVMAF.FileSettings(
         #     csv_file='Out/CQGoogleGSunExperiment/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CQGoogleGSunExperiment.csv',

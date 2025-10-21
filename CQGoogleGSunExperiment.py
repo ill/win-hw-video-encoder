@@ -13,10 +13,10 @@ class CQGoogleGSunExperiment(CQExperiment.CQExperiment):
         ] + super().get_extra_csv_header_columns()
 
     def run_experiment_on_resolution(self, resolution: tuple[int, int]):
-        gsuns = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+        gsuns = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5]
 
         one_pass_encoding = True
-        two_pass_encoding = True
+        two_pass_encoding = False
 
         print(f'{Util.HEADER}\nSweeping Values Between')
         print(f'\tgsuns: {min(gsuns)} - {max(gsuns)}')

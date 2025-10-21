@@ -62,7 +62,7 @@ def main():
     # CQGSunBruteForceSweep.CQGSunBruteForceSweep('badminton.mp4', 'badminton').run_experiment()
 
     #CQGoogleGSunExperiment.CQGoogleGSunExperiment('bipbop15_270_mono.mp4', 'bipbop15_270_mono').run_experiment()
-    CQGoogleGSunExperiment.CQGoogleGSunExperiment('sonichd.mp4', 'sonichd').run_experiment()
+    #CQGoogleGSunExperiment.CQGoogleGSunExperiment('sonichd.mp4', 'sonichd').run_experiment()
     CQGoogleGSunExperiment.CQGoogleGSunExperiment('1440p-av1-42sec.mp4', '1440p-av1-42sec').run_experiment()
     CQGoogleGSunExperiment.CQGoogleGSunExperiment('badminton.mp4', 'badminton').run_experiment()
     CQGoogleGSunExperiment.CQGoogleGSunExperiment('steal-a-brainrot.mp4', 'steal-a-brainrot').run_experiment()
