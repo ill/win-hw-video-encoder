@@ -1,7 +1,7 @@
 import plotBytesVsVMAF
 
 #########
-# CRF
+# region CRF
 
 _1440p_av1_42sec_CRF = (
 plotBytesVsVMAF.FileSettings(
@@ -118,8 +118,10 @@ plotBytesVsVMAF.FileSettings(
     show_crf=True,
 ))
 
+# endregion
+
 #########
-# CQGoogleGSun
+# region CQGoogleGSun
 
 _1440p_av1_42sec_CQGoogleGSun = (
 plotBytesVsVMAF.FileSettings(
@@ -184,8 +186,10 @@ plotBytesVsVMAF.FileSettings(
     show_gsun=True,
 ))
 
+# endregion
+
 #########
-# CQGSunBruteForceSweep
+# region CQGSunBruteForceSweep
 
 _1440p_av1_42sec_0CRF_GSUN = (
 plotBytesVsVMAF.FileSettings(
@@ -250,8 +254,10 @@ plotBytesVsVMAF.FileSettings(
     show_gsun=True,
 ))
 
+# endregion
+
 #########
-# CQGoogle
+# region CQGoogle
 
 _1440p_av1_42sec_CQGoogle = (
 plotBytesVsVMAF.FileSettingsByResolution(
@@ -333,9 +339,14 @@ plotBytesVsVMAF.FileSettingsByResolution(
     enable_2pass=True,
 ))
 
+# endregion
+
 def graphsCombo():
     # Define your settings using the classes
     file_structs = [
+        #########
+        # region CRF
+
         #_1440p_av1_42sec_CRF,
         #badminton_CRF,
         #bipbop_15_270_mono_CRF,
@@ -346,30 +357,47 @@ def graphsCombo():
         #steal_a_brainrot_CRF,
         #strongest_battlegrounds_mac_1440_CRF,
 
+        # endregion
+
+        #########
+        # region CQGoogleGSun
+
         #_1440p_av1_42sec_CQGoogleGSun,
         #badminton_CQGoogleGSun,
         #bipbop_15_270_mono_CQGoogleGSun,
         #Halo_NoMotion_20sec_1080p_CQGoogleGSun,
         sonichd_CQGoogleGSun,
 
+        # endregion
+
+        #########
+        # region CQGSunBruteForceSweep
+
         #_1440p_av1_42sec_0CRF_GSUN,
         #badminton_0CRF_GSUN,
         #bipbop_15_270_mono_0CRF_GSUN,
         #Halo_NoMotion_20sec_1080p_0CRF_GSUN,
         sonichd_0CRF_GSUN,
+
+        # endregion
     ]
 
     file_structs_by_res = [
+        #########
+        # region CQGoogle
+
         #_1440p_av1_42sec_CQGoogle,
         #badminton_CQGoogle,
         #bipbop15_270_mono_CQGoogle,
         #Halo_Montage_1080p_CQGoogle,
         #Halo_NoMotion_20sec_1080p_CQGoogle,
         #ios_native_recorder_CQGoogle,
-        #sonichd_CQGoogle,
+        sonichd_CQGoogle,
         #steal_a_brainrot_CQGoogle,
         #strongest_battlegrounds_mac_1440_CQGoogle,
         #TinyWheelsiPad1920x1440x60xHEVCScreenRecording_CQGoogle,
+
+        # endregion
     ]
 
     plotBytesVsVMAF.plot_combined_bd_class_dim(
