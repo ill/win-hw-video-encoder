@@ -37,7 +37,6 @@ plotBytesVsVMAF.FileSettings(
         (160, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
     },
     label='bipbop15_270_mono',
-    show_gsun=True,
     show_crf=True,
 ))
 
@@ -133,7 +132,6 @@ plotBytesVsVMAF.FileSettings(
     },
     label='1440p-av1-42sec-Gsun',
     show_gsun=True,
-    show_crf=True,
 ))
 
 badminton_CQGoogleGSun = (
@@ -147,7 +145,6 @@ plotBytesVsVMAF.FileSettings(
     },
     label='badminton-Gsun',
     show_gsun=True,
-    show_crf=False,
 ))
 
 bipbop_15_270_mono_CQGoogleGSun = (
@@ -159,7 +156,6 @@ plotBytesVsVMAF.FileSettings(
     },
     label='bipbop15_270_mono-Gsun',
     show_gsun=True,
-    show_crf=True,
 ))
 
 Halo_NoMotion_20sec_1080p_CQGoogleGSun = (
@@ -173,7 +169,6 @@ plotBytesVsVMAF.FileSettings(
     },
     label='Halo_NoMotion_20sec_1080p-Gsun',
     show_gsun=True,
-    show_crf=False,
 ))
 
 sonichd_CQGoogleGSun = (
@@ -187,7 +182,6 @@ plotBytesVsVMAF.FileSettings(
     },
     label='SonicHD-Gsun',
     show_gsun=True,
-    show_crf=False,
 ))
 
 #########
@@ -202,9 +196,8 @@ plotBytesVsVMAF.FileSettings(
         # (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
         # (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
     },
-    label='1440p-av1-42sec-0CRF',
+    label='1440p-av1-42sec-0CRF-Gsun',
     show_gsun=True,
-    show_crf=True,
 ))
 
 badminton_CQGSunBruteForceSweep = (
@@ -216,9 +209,8 @@ plotBytesVsVMAF.FileSettings(
         (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
         (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
     },
-    label='badminton-0CRF',
+    label='badminton-0CRF-Gsun',
     show_gsun=True,
-    show_crf=False,
 ))
 
 bipbop_15_270_mono_CQGSunBruteForceSweep = (
@@ -228,9 +220,8 @@ plotBytesVsVMAF.FileSettings(
         (480, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
         (160, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
     },
-    label='bipbop15_270_mono-0CRF',
+    label='bipbop15_270_mono-0CRF-Gsun',
     show_gsun=True,
-    show_crf=True,
 ))
 
 Halo_NoMotion_20sec_1080p_CQGSunBruteForceSweep = (
@@ -242,9 +233,8 @@ plotBytesVsVMAF.FileSettings(
         #(960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
         #(640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
     },
-    label='Halo_NoMotion_20sec_1080p-0CRF',
+    label='Halo_NoMotion_20sec_1080p-0CRF-Gsun',
     show_gsun=True,
-    show_crf=False,
 ))
 
 sonichd_CQGSunBruteForceSweep = (
@@ -256,13 +246,92 @@ plotBytesVsVMAF.FileSettings(
         (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
         (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
     },
-    label='SonicHD-0CRF',
+    label='SonicHD-0CRF-Gsun',
     show_gsun=True,
-    show_crf=False,
 ))
 
 #########
 # CQGoogle
+
+_1440p_av1_42sec_CQGoogle = (
+plotBytesVsVMAF.FileSettingsByResolution(
+    csv_file='Out/CQGoogle/1440p-av1-42sec/1440p-av1-42sec-CQGoogle.csv',
+    label='1440p-av1-42sec-CQGoogle',
+    enable_1pass=False,
+    enable_2pass=True,
+))
+
+badminton_CQGoogle = (
+plotBytesVsVMAF.FileSettingsByResolution(
+    csv_file='Out/CQGoogle/badminton/badminton-CQGoogle.csv',
+    label='badminton-CQGoogle',
+    enable_1pass=False,
+    enable_2pass=True,
+))
+
+bipbop15_270_mono_CQGoogle = (
+plotBytesVsVMAF.FileSettingsByResolution(
+    csv_file='Out/CQGoogle/bipbop15_270_mono/bipbop15_270_mono-CQGoogle.csv',
+    label='bipbop15_270_mono-CQGoogle',
+    enable_1pass=False,
+    enable_2pass=True,
+))
+
+Halo_Montage_1080p_CQGoogle = (
+plotBytesVsVMAF.FileSettingsByResolution(
+    csv_file='Out/CQGoogle/Halo_Montage_1080p/Halo_Montage_1080p-CQGoogle.csv',
+    label='Halo_Montage_1080p-CQGoogle',
+    enable_1pass=False,
+    enable_2pass=True,
+))
+
+Halo_NoMotion_20sec_1080p_CQGoogle = (
+plotBytesVsVMAF.FileSettingsByResolution(
+    csv_file='Out/CQGoogle/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CQGoogle.csv',
+    label='Halo_NoMotion_20sec_1080p-CQGoogle',
+    enable_1pass=False,
+    enable_2pass=True,
+))
+
+ios_native_recorder_CQGoogle = (
+plotBytesVsVMAF.FileSettingsByResolution(
+    csv_file='Out/CQGoogle/ios_native_recorder/ios_native_recorder-CQGoogle.csv',
+    label='ios_native_recorder-CQGoogle',
+    enable_1pass=False,
+    enable_2pass=True,
+))
+
+sonichd_CQGoogle = (
+plotBytesVsVMAF.FileSettingsByResolution(
+    csv_file='Out/CQGoogle/sonichd/sonichd-CQGoogle.csv',
+    label='SonicHD-CQGoogle',
+    enable_1pass=False,
+    enable_2pass=True,
+))
+
+steal_a_brainrot_CQGoogle = (
+plotBytesVsVMAF.FileSettingsByResolution(
+    csv_file='Out/CQGoogle/steal-a-brainrot/steal-a-brainrot-CQGoogle.csv',
+    label='steal-a-brainrot-CQGoogle',
+    enable_1pass=False,
+    enable_2pass=True,
+))
+
+strongest_battlegrounds_mac_1440_CQGoogle = (
+plotBytesVsVMAF.FileSettingsByResolution(
+    csv_file='Out/CQGoogle/strongest-battlegrounds-mac-1440/strongest-battlegrounds-mac-1440-CQGoogle.csv',
+    label='strongest-battlegrounds-mac-1440-CQGoogle',
+    enable_1pass=False,
+    enable_2pass=True,
+))
+
+TinyWheelsiPad1920x1440x60xHEVCScreenRecording_CQGoogle = (
+plotBytesVsVMAF.FileSettingsByResolution(
+    csv_file='Out/CQGoogle/TinyWheelsiPad1920x1440x60xHEVCScreenRecording/TinyWheelsiPad1920x1440x60xHEVCScreenRecording-CQGoogle.csv',
+    label='TinyWheelsiPad1920x1440x60xHEVCScreenRecording-CQGoogle',
+    enable_1pass=False,
+    enable_2pass=True,
+))
 
 def graphsCombo():
     # Define your settings using the classes
@@ -283,161 +352,24 @@ def graphsCombo():
         #Halo_NoMotion_20sec_1080p_CQGoogleGSun,
         #sonichd_CQGoogleGSun,
 
-        #_1440p_av1_42sec_CQGSunBruteForceSweep,
+        _1440p_av1_42sec_CQGSunBruteForceSweep,
         #badminton_CQGSunBruteForceSweep,
         #bipbop_15_270_mono_CQGSunBruteForceSweep,
         #Halo_NoMotion_20sec_1080p_CQGSunBruteForceSweep,
         #sonichd_CQGSunBruteForceSweep,
-
-
     ]
 
     file_structs_by_res = [
-        # plotBytesVsVMAF.FileSettingsByResolution(
-        #     csv_file='Out/CQGoogle/sonichd/sonichd-CQGoogle.csv',
-        #     label='SonicHD-Google',
-        #     enable_1pass=True,
-        #     enable_2pass=False,
-        # ),
-
-        # plotBytesVsVMAF.FileSettingsByResolution(
-        #     csv_file='Out/CQGoogle/1440p-av1-42sec/1440p-av1-42sec-CQGoogle.csv',
-        #     label='1440p-av1-42sec-Google',
-        #     enable_1pass=True,
-        #     enable_2pass=False,
-        # ),
-        #
-        # plotBytesVsVMAF.FileSettingsByResolution(
-        #     csv_file='Out/CQGoogle/badminton/badminton-CQGoogle.csv',
-        #     label='badminton-Google',
-        #     enable_1pass=True,
-        #     enable_2pass=False,
-        # ),
-        #
-        # plotBytesVsVMAF.FileSettingsByResolution(
-        #     csv_file='Out/CQGoogle/bipbop15_270_mono/bipbop15_270_mono-CQGoogle.csv',
-        #     label='bipbop15_270_mono-Google',
-        #     enable_1pass=True,
-        #     enable_2pass=False,
-        # ),
-        #
-        # plotBytesVsVMAF.FileSettingsByResolution(
-        #     csv_file='Out/CQGoogle/Halo_Montage_1080p/Halo_Montage_1080p-CQGoogle.csv',
-        #     label='Halo_Montage_1080p-Google',
-        #     enable_1pass=True,
-        #     enable_2pass=False,
-        # ),
-        #
-        # plotBytesVsVMAF.FileSettingsByResolution(
-        #     csv_file='Out/CQGoogle/Halo_NoMotion_20sec_1080p/Halo_NoMotion_20sec_1080p-CQGoogle.csv',
-        #     label='Halo_NoMotion_20sec_1080p-Google',
-        #     enable_1pass=True,
-        #     enable_2pass=False,
-        # ),
-        #
-        # plotBytesVsVMAF.FileSettingsByResolution(
-        #     csv_file='Out/CQGoogle/ios_native_recorder/ios_native_recorder-CQGoogle.csv',
-        #     label='ios_native_recorder-Google',
-        #     enable_1pass=True,
-        #     enable_2pass=False,
-        # ),
-        #
-        # plotBytesVsVMAF.FileSettingsByResolution(
-        #     csv_file='Out/CQGoogle/steal-a-brainrot/steal-a-brainrot-CQGoogle.csv',
-        #     label='steal-a-brainrot-Google',
-        #     enable_1pass=True,
-        #     enable_2pass=False,
-        # ),
-        #
-        # plotBytesVsVMAF.FileSettingsByResolution(
-        #     csv_file='Out/CQGoogle/strongest-battlegrounds-mac-1440/strongest-battlegrounds-mac-1440-CQGoogle.csv',
-        #     label='strongest-battlegrounds-mac-1440-Google',
-        #     enable_1pass=True,
-        #     enable_2pass=False,
-        # ),
-        #
-        # plotBytesVsVMAF.FileSettingsByResolution(
-        #     csv_file='Out/CQGoogle/TinyWheelsiPad1920x1440x60xHEVCScreenRecording/TinyWheelsiPad1920x1440x60xHEVCScreenRecording-CQGoogle.csv',
-        #     label='TinyWheelsiPad1920x1440x60xHEVCScreenRecording-Google',
-        #     enable_1pass=True,
-        #     enable_2pass=False,
-        # ),
-    ]
-
-    plotBytesVsVMAF.plot_combined_bd_class_dim(
-        file_settings_list=file_structs,
-        file_settings_by_resolution_list=file_structs_by_res,
-        output_filename='combined_bd_graph.png',
-        show_plot=True,
-        use_leader_lines=False,
-    )
-
-def sonichd():
-    file_structs = [
-        plotBytesVsVMAF.FileSettings(
-            csv_file='Out/CRF/sonichd/sonichd-CRF.csv',
-            dims={
-                (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(27, 63)),
-                (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63))
-            },
-            label='SonicHD',
-            show_crf=True,
-        ),
-
-        plotBytesVsVMAF.FileSettings(
-            csv_file='Out/CQGoogleGSunExperiment/sonichd/sonichd-CQGoogleGSunExperiment.csv',
-            dims={
-                (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-                (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-                (960, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False),
-                (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False)
-            },
-            label='SonicHD-Gsun',
-            show_gsun=True,
-            show_crf=False,
-        ),
-    ]
-
-    file_structs_by_res = [
-        plotBytesVsVMAF.FileSettingsByResolution(
-            csv_file='Out/CQGoogle/sonichd/sonichd-CQGoogle.csv',
-            label='SonicHD-Google',
-            enable_1pass=True,
-            enable_2pass=False,
-        ),
-    ]
-
-    plotBytesVsVMAF.plot_combined_bd_class_dim(
-        file_settings_list=file_structs,
-        file_settings_by_resolution_list=file_structs_by_res,
-        output_filename='combined_bd_graph.png',
-        show_plot=True,
-        use_leader_lines=False,
-    )
-
-def badminton():
-    file_structs = [
-        plotBytesVsVMAF.FileSettings(
-            csv_file='Out/CRF/badminton/badminton-CRF.csv',
-            dims={
-                (1920, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (1280, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(10, 63)),
-                (640, -1): plotBytesVsVMAF.DimensionSettings(enable_1pass=False, crf_range=(0, 54))
-            },
-            label='badminton',
-            show_crf=True,
-        ),
-    ]
-
-    file_structs_by_res = [
-        plotBytesVsVMAF.FileSettingsByResolution(
-            csv_file='Out/CQGoogle/badminton/badminton-CQGoogle.csv',
-            label='badminton-Google',
-            enable_1pass=True,
-            enable_2pass=False,
-        ),
+        _1440p_av1_42sec_CQGoogle,
+        #badminton_CQGoogle,
+        #bipbop15_270_mono_CQGoogle,
+        #Halo_Montage_1080p_CQGoogle,
+        #Halo_NoMotion_20sec_1080p_CQGoogle,
+        #ios_native_recorder_CQGoogle,
+        #sonichd_CQGoogle,
+        #steal_a_brainrot_CQGoogle,
+        #strongest_battlegrounds_mac_1440_CQGoogle,
+        #TinyWheelsiPad1920x1440x60xHEVCScreenRecording_CQGoogle,
     ]
 
     plotBytesVsVMAF.plot_combined_bd_class_dim(
@@ -450,7 +382,3 @@ def badminton():
 
 if __name__ == "__main__":
     graphsCombo()
-
-    #sonichd()
-
-    #badminton()
